@@ -6,9 +6,11 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_scegn"]
 shader = ExtResource("2_qbrik")
+shader_parameter/scale_factor = 0.5
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_cd4mw"]
 shader = ExtResource("2_qbrik")
+shader_parameter/scale_factor = 0.5
 
 [node name="Node2D" type="Node2D"]
 script = ExtResource("1_3y61u")
@@ -17,3 +19,9 @@ script = ExtResource("1_3y61u")
 material = SubResource("ShaderMaterial_scegn")
 process_material = SubResource("ShaderMaterial_cd4mw")
 texture = ExtResource("3_tyr3x")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="FPS" type="Label" parent="CanvasLayer"]
+offset_right = 40.0
+offset_bottom = 23.0

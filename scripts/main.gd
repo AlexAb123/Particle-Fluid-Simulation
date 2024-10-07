@@ -1,38 +1,29 @@
 extends Node2D
 
-var NUM_BOIDS = 50000
-var boid_pos = []
-var boid_vel = []
-var max_vel = 50
-
-
-#func _ready():
-	#_generate_boids()
-func _generate_boids():
-	for i in NUM_BOIDS:
-		boid_pos.append(Vector2(randf() * get_viewport_rect().size.x, randf()  * get_viewport_rect().size.y))
-
-
-
-
-
+@onready var gpu_particles_2d: GPUParticles2D = $GPUParticles2D
 
 var particle_count = 100
 var image_size = int(ceil(sqrt(particle_count)))
-var particle_positions: Array[Vector2] = []
+var positions: Array[Vector2] = []
+var velocities: Array[Vector2] = []
 
 var data_image : Image
 var data_texture : ImageTexture
 
-func _initialize_particles():
-	for i in particle_count:
-		particle_positions.append(Vector2(randf() * get_viewport_rect().size.x, randf() * get_viewport_rect().size.y))
-		
 func _ready() -> void:
+	for i in particle_count:
+		positions.append(Vector2(randf() * get_viewport_rect().size.x, randf() * get_viewport_rect().size.y))
+		velocities.append(Vector2(0,0))
 	data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAF)
-	
-	
+	for i in particle_count:
+		data_image.set_pixel(i % image_size, int(i / image_size), Color(positions[i].x, positions[i].y, velocities[i].x, velocities[i].y ))
 	data_texture = ImageTexture.create_from_image(data_image)
+	gpu_particles_2d.amount = particle_count
+	gpu_particles_2d.process_material.set_shader_parameter("particle_data", data_texture)
+	
+@onready var fps_label: Label = $CanvasLayer/FPS
+func _process(delta: float) -> void:
+	fps_label.text = "FPS: " + str(Engine.get_frames_per_second()) 
 
 # Assumes 0 <= distance < smoothing_radius
 # DELETE MAX AT THE END, DISTANCE SHOULD NEVER BE GREATER THAN SMOOTHING RADIUS
@@ -41,11 +32,7 @@ func smoothing_function(smoothing_radius, distance):
 # Assumes 0 <= distance < smoothing_radius
 func smoothing_function_derivative(smoothing_radius, distance):
 	return -3 * pow(smoothing_radius - distance, 2)
-
-
-image.create(texture_size, texture_size, false, Image.FORMAT_RGBAF) 
-		
-		
+	
 #var buffer : RID
 #var rd : RenderingDevice
 #var input := PackedFloat32Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
@@ -110,4 +97,3 @@ image.create(texture_size, texture_size, false, Image.FORMAT_RGBAF)
 	# We just need to divide by some mulitple of R^5 to normalize it. Here we divide by pi R^5 / 10 just to make it equal to 0
 		#Need Derivative of smoothing function
 	#The influence of each particle is determined by the smoothing function. Has 0 influence at distance > smoothing radius
-
