@@ -25,3 +25,8 @@ void process(){
     vec4 red = vec4(1.0, 0.0, 0.0, 1.0);
     COLOR = mix(blue, red, normalized_value);
 }
+
+void start() {
+	TRANSFORM[0] *= 0.5;
+	
+}

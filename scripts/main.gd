@@ -24,7 +24,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	DisplayServer.window_set_title("FPS: " + str(Engine.get_frames_per_second()))
 
-# Assumes 0 <= distance < smoothing_radius
+# Assumes 0 <= distance < smoothing_radius 
 # DELETE MAX AT THE END, DISTANCE SHOULD NEVER BE GREATER THAN SMOOTHING RADIUS
 func smoothing_function(smoothing_radius, distance):
 	return max(0, pow(smoothing_radius - distance, 3))
