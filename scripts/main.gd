@@ -21,9 +21,8 @@ func _ready() -> void:
 	gpu_particles_2d.amount = particle_count
 	gpu_particles_2d.process_material.set_shader_parameter("particle_data", data_texture)
 	
-@onready var fps_label: Label = $CanvasLayer/FPS
 func _process(delta: float) -> void:
-	fps_label.text = "FPS: " + str(Engine.get_frames_per_second()) 
+	DisplayServer.window_set_title("FPS: " + str(Engine.get_frames_per_second()))
 
 # Assumes 0 <= distance < smoothing_radius
 # DELETE MAX AT THE END, DISTANCE SHOULD NEVER BE GREATER THAN SMOOTHING RADIUS
