@@ -2,35 +2,78 @@ extends Node2D
 
 @onready var gpu_particles_2d: GPUParticles2D = $GPUParticles2D
 
-var particle_count = 100
+@export_range(0, 500) var particle_count: int = 250
+@export_range(0, 1000) var smoothing_radius: float = 100
+@export_range(0, 5000) var particle_mass: float = 1000
+@export_range(0, 2500) var target_density: float = 500
+@export_range(0, 50) var pressure_multiplier: float = 4
+
 var image_size = int(ceil(sqrt(particle_count)))
 var positions: Array[Vector2] = []
 var velocities: Array[Vector2] = []
+var densities: Array[float] = []
+var gradients: Array[Vector2] = []
 
-var data_image : Image
-var data_texture : ImageTexture
+var data_image: Image
+var data_texture: ImageTexture
 
 func _ready() -> void:
+	data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAF)
+	gpu_particles_2d.amount = particle_count
+	
+	_initialize_data()
+	_update_densities()
+	_update_data_texture()
+	
+func _initialize_data():
 	for i in particle_count:
 		positions.append(Vector2(randf() * get_viewport_rect().size.x, randf() * get_viewport_rect().size.y))
 		velocities.append(Vector2(0,0))
-	data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAF)
+		densities.append(0.0)
+
+# Updates the data texture and passes it into the particle shader
+func _update_data_texture():
 	for i in particle_count:
-		data_image.set_pixel(i % image_size, int(i / image_size), Color(positions[i].x, positions[i].y, velocities[i].x, velocities[i].y ))
+		data_image.set_pixel(i % image_size, int(i / image_size), Color(positions[i].x, positions[i].y, densities[i], 0))
 	data_texture = ImageTexture.create_from_image(data_image)
-	gpu_particles_2d.amount = particle_count
 	gpu_particles_2d.process_material.set_shader_parameter("particle_data", data_texture)
 	
 func _process(delta: float) -> void:
 	DisplayServer.window_set_title("FPS: " + str(Engine.get_frames_per_second()))
+	print(particle_mass)
 
-# Assumes 0 <= distance < smoothing_radius 
-# DELETE MAX AT THE END, DISTANCE SHOULD NEVER BE GREATER THAN SMOOTHING RADIUS
-func smoothing_function(smoothing_radius, distance):
-	return max(0, pow(smoothing_radius - distance, 3))
-# Assumes 0 <= distance < smoothing_radius
-func smoothing_function_derivative(smoothing_radius, distance):
-	return -3 * pow(smoothing_radius - distance, 2)
+func _update_densities():
+	for i in particle_count:
+		densities[i] = _calculate_density(positions[i])
+func _calculate_density(pos: Vector2):
+	var density = 0.0
+	for i in particle_count:
+		var distance = pos.distance_to(positions[i])
+		var influence = smoothing_function(smoothing_radius, distance)
+		density += influence * particle_mass
+	return density
+
+func _calculate_density_gradient(pos: Vector2):
+	var gradient: Vector2 = Vector2.ZERO
+	for i in particle_count:
+		var distance = pos.distance_to(positions[i])
+		# If distance is 0 (the two particles are on top of eachother, or it's comparing to itself), choose a random direction.
+		var direction = Vector2(1, 0).rotated(randf_range(0.0, 2*PI)) if distance == 0 else (positions[i] - pos) / distance
+		var magnitude = smoothing_function_derivative(smoothing_radius, distance)
+		gradient += particle_mass * direction * magnitude
+	return gradient
+
+# The further we are from the target density, the faster the particle should move.
+func _convert_density_to_pressure(density):
+	return (density - target_density) * pressure_multiplier
+
+func _update_positions():
+	pass
+
+func smoothing_function(rad, dst):
+	return max(0, pow(rad - dst, 3)) /  (PI * pow(rad, 5) / 10 ) # Divide by this to normalize (integral will always be 1) because the total contribution of a single particle to the density should NOT depend on the smoothing radius
+func smoothing_function_derivative(rad, dst):
+	return 0.0 if dst > rad else -3 * pow(rad - dst, 2) / (PI * pow(rad, 5) / 10 ) # Divide by this to normalize (integral will always be 1) because the total contribution of a single particle to the density should NOT depend on the smoothing radius
 	
 #var buffer : RID
 #var rd : RenderingDevice
