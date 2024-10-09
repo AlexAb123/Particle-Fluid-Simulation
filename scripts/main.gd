@@ -5,9 +5,9 @@ extends Node2D
 @export_range(0, 500) var particle_count: int = 100
 @export_range(0, 1000) var smoothing_radius: float = 250
 @export_range(0, 5000) var particle_mass: float = 100
-@export_range(0, 50000) var pressure_multiplier: float = 500
+@export_range(0, 50000) var pressure_multiplier: float = 25000
 @export_range(0, 2500) var target_density: float = 0.01
-@export_range(0, 500) var gravity: float = 10
+@export_range(0, 500) var gravity: float = 25
 @export_range(0, 1) var elasticity: float = 0.75
 
 var image_size = int(ceil(sqrt(particle_count)))
@@ -107,9 +107,16 @@ func _update_step(delta):
 			velocities[i].y *= -1 * elasticity
 
 func smoothing_function(rad, dst):
-	return max(0, pow(rad - dst, 3)) / (PI * pow(rad, 5) / 10) # Divide by this to normalize (integral will always be 1) because the total contribution of a single particle to the density should NOT depend on the smoothing radius
+	if dst >= rad:
+		return 0
+	return pow((rad - dst), 2) / ((PI * pow(rad, 4)) / 6)
+	#return max(0, pow(rad - dst, 3)) / (PI * pow(rad, 5) / 10) # Divide by this to normalize (integral will always be 1) because the total contribution of a single particle to the density should NOT depend on the smoothing radius
 func smoothing_function_derivative(rad, dst):
-	return 0.0 if dst > rad else -3 * pow(rad - dst, 2) / (PI * pow(rad, 5) / 10) # Divide by this to normalize (integral will always be 1) because the total contribution of a single particle to the density should NOT depend on the smoothing radius
+	if dst >= rad:
+		return 0
+	var s = 12 / (pow(rad, 4) * PI)
+	return (dst - rad) * s
+	#return 0.0 if dst > rad else -3 * pow(rad - dst, 2) / (PI * pow(rad, 5) / 10) # Divide by this to normalize (integral will always be 1) because the total contribution of a single particle to the density should NOT depend on the smoothing radius
 	
 #var buffer : RID
 #var rd : RenderingDevice

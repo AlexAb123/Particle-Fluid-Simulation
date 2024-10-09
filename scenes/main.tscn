@@ -12,8 +12,6 @@ shader_parameter/scale_factor = 0.5
 z_index = -1
 y_sort_enabled = true
 script = ExtResource("1_3y61u")
-smoothing_radius = 100.0
-gravity = 0.0
 
 [node name="GPUParticles2D" type="GPUParticles2D" parent="."]
 process_material = SubResource("ShaderMaterial_cd4mw")
