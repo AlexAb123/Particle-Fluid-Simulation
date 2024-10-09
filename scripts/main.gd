@@ -15,7 +15,12 @@ var particle_positions: Array[Vector2] = []
 var next_positions: Array[Vector2] = []
 var velocities: Array[Vector2] = []
 var densities: Array[float] = []
-var gradients: Array[Vector2] = []
+var pressure_gradients: Array[Vector2] = []
+
+var values: Array[float] = []
+
+var min_density
+var max_density
 
 var data_image: Image
 var data_texture: ImageTexture
@@ -27,7 +32,13 @@ func _ready() -> void:
 
 func _draw():
 	draw_circle(Vector2(get_viewport_rect().size.x/2, get_viewport_rect().size.y/2), smoothing_radius, Color.RED, false)
-	
+	_update_densities(particle_positions)
+	for x in get_viewport_rect().size.x/50:
+		for y in get_viewport_rect().size.y/50:
+			draw_line(Vector2(x*50, y*50), Vector2(x*50, y*50) + _calculate_value_gradient(Vector2(x*50, y*50), particle_positions).normalized()*10, Color.GREEN, 2.5)
+	#for i in particle_count:
+		#draw_line(particle_positions[i], particle_positions[i] + _calculate_value_gradient(i, particle_positions)*5000, Color.GREEN, 2.5)
+		
 func _process(delta: float) -> void:
 	DisplayServer.window_set_title("FPS: " + str(Engine.get_frames_per_second()))
 	
@@ -43,17 +54,29 @@ func _initialize_data():
 		next_positions.append(Vector2(0,0))
 		velocities.append(Vector2(0,0))
 		densities.append(0.0)
+		pressure_gradients.append(Vector2(0,0))
+		values.append(0.0)
 
 # Updates the data texture and passes it into the particle shader
 func _update_data_texture():
 	for i in particle_count:
-		data_image.set_pixel(i % image_size, int(i / image_size), Color(particle_positions[i].x, particle_positions[i].y, densities[i], 0))
+		data_image.set_pixel(i % image_size, int(i / image_size), Color(particle_positions[i].x, particle_positions[i].y, _calculate_value(particle_positions[i], next_positions), 0))
 	data_texture = ImageTexture.create_from_image(data_image)
+	# temporary stuff vvv change the vlaues back to actual min later
 	gpu_particles_2d.process_material.set_shader_parameter("particle_data", data_texture)
+	gpu_particles_2d.process_material.set_shader_parameter("min_density", -1)
+	gpu_particles_2d.process_material.set_shader_parameter("max_density", 1)
 
 func _update_densities(positions):
 	for i in particle_count:
 		densities[i] = _calculate_density(particle_positions[i], positions)
+		if i == 0:
+			min_density = densities[i]
+			max_density = densities[i]
+		if densities[i] < min_density:
+			min_density = densities[i]
+		if densities[i] > max_density:
+			max_density = densities[i]
 		 
 func _calculate_density(pos: Vector2, positions):
 	var density = 0.0
@@ -63,6 +86,10 @@ func _calculate_density(pos: Vector2, positions):
 		density += influence * particle_mass
 	return density
 
+func _update_pressure_gradients(positions):
+	for i in particle_count:
+		pressure_gradients[i] = _calculate_pressure_gradient(i, positions)
+		
 func _calculate_pressure_gradient(index: int, positions):
 	var pressure_gradient: Vector2 = Vector2.ZERO
 	for i in particle_count:
@@ -74,6 +101,24 @@ func _calculate_pressure_gradient(index: int, positions):
 		pressure_gradient += shared_pressure * particle_mass / densities[i] * direction * magnitude
 	return pressure_gradient
 
+func _calculate_value(pos: Vector2, positions):
+	var value = 0.0
+	for i in particle_count:
+		var distance = pos.distance_to(positions[i])
+		var influence = smoothing_function(smoothing_radius, distance)
+		value += test_function(positions[i]) * influence * particle_mass / densities[i]
+	return value
+	
+func _calculate_value_gradient(pos: Vector2, positions):
+	var value_gradient: Vector2 = Vector2.ZERO
+	for i in particle_count:
+		var distance = pos.distance_to(particle_positions[i])
+		# If distance is 0 (the two particles are on top of eachother, or it's comparing to itself), choose a random direction.
+		var direction = Vector2(1, 0).rotated(randf_range(0.0, 2*PI)) if distance == 0 else (particle_positions[i] - pos) / distance
+		var magnitude = smoothing_function_derivative(smoothing_radius, distance)
+		value_gradient += _calculate_value(pos, positions) * particle_mass / densities[i] * direction * magnitude
+	return value_gradient
+
 # The further we are from the target density, the faster the particle should move, and the more pressure should be applied to it.
 func _density_to_pressure(density):
 	return (density - target_density) * pressure_multiplier
@@ -84,10 +129,10 @@ func _update_step(delta):
 		next_positions[i] = particle_positions[i] + velocities[i] * delta
 		
 	_update_densities(next_positions)
+	_update_pressure_gradients(next_positions)
 	
 	for i in particle_count:
-		var pressure_gradient = _calculate_pressure_gradient(i, next_positions)
-		var pressure_acceleration = pressure_gradient / densities[i]
+		var pressure_acceleration = pressure_gradients[i] / densities[i]
 		velocities[i] += pressure_acceleration * delta
 		
 		particle_positions[i] += velocities[i] * delta
@@ -118,6 +163,9 @@ func smoothing_function_derivative(rad, dst):
 	return (dst - rad) * s
 	#return 0.0 if dst > rad else -3 * pow(rad - dst, 2) / (PI * pow(rad, 5) / 10) # Divide by this to normalize (integral will always be 1) because the total contribution of a single particle to the density should NOT depend on the smoothing radius
 	
+func test_function(pos):
+	return cos(pos.y/150 + sin(pos.x/150))
+
 #var buffer : RID
 #var rd : RenderingDevice
 #var input := PackedFloat32Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])

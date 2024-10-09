@@ -7,11 +7,16 @@
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_cd4mw"]
 shader = ExtResource("2_qbrik")
 shader_parameter/scale_factor = 0.5
+shader_parameter/min_density = null
+shader_parameter/max_density = null
 
 [node name="Node2D" type="Node2D"]
 z_index = -1
 y_sort_enabled = true
 script = ExtResource("1_3y61u")
+particle_mass = 1000.0
+pressure_multiplier = 0.0
+gravity = 0.0
 
 [node name="GPUParticles2D" type="GPUParticles2D" parent="."]
 process_material = SubResource("ShaderMaterial_cd4mw")
