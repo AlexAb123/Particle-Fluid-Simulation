@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3 uid="uid://dgbsev7ibkywa"]
+
+[ext_resource type="Script" uid="uid://cnt5wjfqomab1" path="res://scripts/old_main.gd" id="1_3y61u"]
+[ext_resource type="Shader" uid="uid://brdj5fy0kgfdp" path="res://shaders/particle.gdshader" id="2_qbrik"]
+[ext_resource type="Texture2D" uid="uid://cgcdxute0um1v" path="res://sprites/particle16.png" id="3_i38t2"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cd4mw"]
+shader = ExtResource("2_qbrik")
+shader_parameter/scale_factor = 0.5
+shader_parameter/min_density = 0.0
+shader_parameter/max_density = 0.0
+
+[node name="Node2D" type="Node2D"]
+z_index = -1
+y_sort_enabled = true
+script = ExtResource("1_3y61u")
+particle_mass = 1000.0
+pressure_multiplier = 0.0
+gravity = 0.0
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="."]
+texture = ExtResource("3_i38t2")
+fixed_fps = 60
+process_material = SubResource("ShaderMaterial_cd4mw")
