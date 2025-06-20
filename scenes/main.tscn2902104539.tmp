@@ -8,7 +8,13 @@ colors = PackedColorArray(0.176, 0.88, 0.821333, 1, 0.483333, 1, 0, 1, 1, 0.836,
 
 [node name="Node2D" type="Node2D"]
 script = ExtResource("1_3y61u")
-particle_count = 500
+particle_count = null
+smoothing_radius = null
+particle_mass = null
+pressure_multiplier = null
+target_density = null
+gravity = null
+elasticity = null
 gradient = SubResource("Gradient_o5qli")
 
 [node name="FPSCounter" type="Label" parent="."]
