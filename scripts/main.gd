@@ -22,14 +22,17 @@ var pressure_forces: PackedVector2Array = PackedVector2Array()
 var spatial_buckets: Dictionary[Vector2i, PackedInt32Array] = {}
 
 func _ready():
+	var width = get_viewport_rect().size.x
+	var height = get_viewport_rect().size.y
 	for i in range(particle_count):
-		positions.append(Vector2(randf() * get_viewport_rect().size.x, randf() * get_viewport_rect().size.y))
+		positions.append(Vector2(randf() * width, randf() * height))
 		velocities.append(Vector2(0,0))
 		densities.append(0.0)
 		pressures.append(0.0)
 		pressure_forces.append(Vector2(0,0))
 
 func _process(delta: float) -> void:
+	print(densities[0])
 	
 	fps_counter.text = str(int(Engine.get_frames_per_second())) + " fps"
 	
@@ -38,21 +41,21 @@ func _process(delta: float) -> void:
 	queue_redraw()
 	
 func _simulate_step(delta: float) -> void:
-	_update_spatial_buckets(positions)
-	_update_densities(positions)
-	_update_pressures(densities)
-	_update_pressure_forces(positions, densities, pressures)
-	_update_velocities(pressure_forces, delta)
-	_update_positions(velocities, delta)
+	_update_spatial_buckets()
+	_update_densities()
+	_update_pressures()
+	_update_pressure_forces()
+	_update_velocities(delta)
+	_update_positions(delta)
 
 func _draw():
 	for i in range(particle_count):
 		var pos = positions[i]
-		var value = densities[i] * 100 * 50 - 6
+		var value = velocities[i].length() * 50 - 6
 		draw_circle(pos, 3, gradient.sample(value))
  
 func _get_spatial_bucket(pos: Vector2) -> Vector2i:
-	return Vector2i(pos.x/smoothing_radius, pos.y/smoothing_radius)
+	return Vector2i(int(pos.x/smoothing_radius), int(pos.y/smoothing_radius))
 
 # Returns a list of all other particles in neighbouring spatial buckets
 func _get_spatial_bucket_neighbours(pos: Vector2) -> PackedInt32Array:
@@ -65,7 +68,7 @@ func _get_spatial_bucket_neighbours(pos: Vector2) -> PackedInt32Array:
 				neighbours.append_array(spatial_buckets[neighbour_bucket])
 	return neighbours
 	
-func _update_spatial_buckets(positions: PackedVector2Array):
+func _update_spatial_buckets():
 	spatial_buckets.clear()
 	for i in range(positions.size()):
 		var pos = positions[i]
@@ -74,12 +77,12 @@ func _update_spatial_buckets(positions: PackedVector2Array):
 			spatial_buckets[bucket] = PackedInt32Array()
 		spatial_buckets[bucket].append(i)
 
-func _update_velocities(pressure_forces: PackedVector2Array, delta: float) -> void:
+func _update_velocities(delta: float) -> void:
 	for i in range(particle_count):
 		velocities[i] += pressure_forces[i] / particle_mass * delta
 		velocities[i] += Vector2(0, gravity) * delta
 
-func _update_positions(velocities: PackedVector2Array, delta: float):
+func _update_positions(delta: float):
 	for i in range(particle_count):
 		positions[i] += velocities[i] * delta
 		
@@ -97,14 +100,14 @@ func _update_positions(velocities: PackedVector2Array, delta: float):
 			positions[i].y = get_viewport_rect().size.y
 			velocities[i].y *= -1 * elasticity
 
-func _update_densities(positions: PackedVector2Array) -> void:
+func _update_densities() -> void:
 	for i in range(particle_count):
-		densities[i] = _calculate_density_at(i, positions)
-func _update_pressures(densities: PackedFloat32Array) -> void:
+		densities[i] = _calculate_density_at(i)
+func _update_pressures() -> void:
 	for i in range(particle_count):
 		pressures[i] = _density_to_pressure(densities[i])
 
-func _calculate_density_at(particle_index: int, positions: PackedVector2Array) -> float:
+func _calculate_density_at(particle_index: int) -> float:
 	var density = 0.0
 	var pos: Vector2 = positions[particle_index]
 	for i in _get_spatial_bucket_neighbours(pos):
@@ -115,11 +118,11 @@ func _calculate_density_at(particle_index: int, positions: PackedVector2Array) -
 		density += influence * particle_mass
 	return density
 	
-func _update_pressure_forces(positions: PackedVector2Array, densities: PackedFloat32Array, pressures: PackedFloat32Array):
+func _update_pressure_forces():
 	for i in range(particle_count):
-		pressure_forces[i] = _calculate_pressure_force_at(i, positions, densities, pressures)
+		pressure_forces[i] = _calculate_pressure_force_at(i)
 	
-func _calculate_pressure_force_at(particle_index: int, positions: PackedVector2Array, densities: PackedFloat32Array, pressures: PackedFloat32Array) -> Vector2:
+func _calculate_pressure_force_at(particle_index: int) -> Vector2:
 	
 	var pos: Vector2 = positions[particle_index]
 	var pressure: float = pressures[particle_index]
@@ -142,6 +145,11 @@ func _calculate_pressure_force_at(particle_index: int, positions: PackedVector2A
 	
 	return pressure_force
 
+func _calculate_viscocity_force_at(particle_index: int) -> Vector2:
+	var viscocity_force: Vector2 = Vector2.ZERO
+	var pos: Vector2 = positions[particle_index]
+	
+	for i in _get_spatial_bucket_neighbours()
 
 func _smoothing_function(dst: float) -> float:
 	return max(0, pow(smoothing_radius - dst, 3)) / (PI * pow(smoothing_radius, 5) / 10) # Divide by this to normalize (integral will always be 1) because the total contribution of a single particle to the density should NOT depend on the smoothing radius

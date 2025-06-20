@@ -21,6 +21,11 @@ config/icon="res://icon.svg"
 gdscript/warnings/static_called_on_instance=2
 gdscript/warnings/integer_division=0
 
+[display]
+
+window/size/viewport_width=400
+window/size/viewport_height=300
+
 [input]
 
 left_click={
