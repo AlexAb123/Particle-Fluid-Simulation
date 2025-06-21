@@ -7,7 +7,7 @@ extends Node2D
 @export var target_density: float = 3
 @export var gravity: float = 0
 @export_range(0, 1) var elasticity: float = 0.95
-@export var viscocity: float = 1000
+@export var viscocity: float = 50
 
 @export var gradient: Gradient
 
@@ -26,7 +26,8 @@ func _ready():
 	var width = get_viewport_rect().size.x
 	var height = get_viewport_rect().size.y
 	for i in range(particle_count):
-		positions.append(Vector2(randf() * width, randf() * height))
+		#positions.append(Vector2(randf() * width, randf() * height))
+		positions.append(Vector2(randf() * width/4 + width/2 - width/8, randf() * height/4 + height/2 - height/8))
 		velocities.append(Vector2(0,0))
 		densities.append(0.0)
 		pressures.append(0.0)
@@ -37,6 +38,20 @@ func _process(delta: float) -> void:
 	fps_counter.text = str(int(Engine.get_frames_per_second())) + " fps"
 	
 	_simulate_step(delta)
+	_simulate_step(delta)
+	_simulate_step(delta)
+	_simulate_step(delta)
+	
+	var total = 0
+	for d in densities:
+		total += d
+		
+	print("Total Density: " + str(total))
+	
+	print("Density: " + str(densities[0]))
+	print("Density Error: " + str(densities[0] - target_density))
+	print("Pressure: " + str(pressures[0]))
+	print("Pressure Force: " + str(_calculate_pressure_force_at(0).length()))
 	
 	queue_redraw()
 	
@@ -51,8 +66,10 @@ func _simulate_step(delta: float) -> void:
 func _draw():
 	for i in range(particle_count):
 		var pos = positions[i]
-		var value = velocities[i].length()
-		draw_circle(pos, 3, gradient.sample(value))
+		if i == 0:
+			draw_circle(pos, 3, Color.RED)
+		else:
+			draw_circle(pos, 3, gradient.sample(densities[i] - target_density))
  
 func _get_spatial_bucket(pos: Vector2) -> Vector2i:
 	return Vector2i(int(pos.x/smoothing_radius), int(pos.y/smoothing_radius))
@@ -79,7 +96,8 @@ func _update_spatial_buckets():
 
 func _update_velocities(delta: float) -> void:
 	for i in range(particle_count):
-		velocities[i] += (forces[i] + Vector2(0, gravity)) / densities[i] * delta
+		velocities[i] += forces[i] / densities[i] * delta
+		velocities[i] += Vector2(0, gravity) * delta
 
 func _update_positions(delta: float):
 	for i in range(particle_count):
@@ -100,11 +118,8 @@ func _update_positions(delta: float):
 			velocities[i].y *= -1 * elasticity
 
 func _update_densities() -> void:
-	var total = 0
 	for i in range(particle_count):
 		densities[i] = _calculate_density_at(i)
-		total += densities[i]
-	print("average density: " + str(total / particle_count))
 		
 func _update_pressures() -> void:
 	for i in range(particle_count):
@@ -117,7 +132,7 @@ func _calculate_density_at(particle_index: int) -> float:
 		var distance = pos.distance_to(positions[i])
 		if distance > smoothing_radius: # If other particle is outside of smoothing radius, it won't have any influence on this particle
 			continue
-		var influence = _smoothing_function(distance)
+		var influence = _density_kernel(distance)
 		density += influence * particle_mass
 	return density
 	
@@ -140,11 +155,11 @@ func _calculate_pressure_force_at(particle_index: int) -> Vector2:
 		var distance = pos.distance_to(other_pos)
 		if distance > smoothing_radius: # If other particle is outside of smoothing radius, it won't apply any force on this particle
 			continue
-		var magnitude = _smoothing_function_derivative(distance)
+		var magnitude = _density_kernel_derivative(distance)
 		# If distance is 0 (the two particles are on top of eachother), choose a random direction.
 		var direction = Vector2(1, 0).rotated(randf_range(0.0, 2*PI)) if distance == 0 else (other_pos - pos) / distance
 		var shared_pressure = (pressure + pressures[i]) / 2
-		pressure_force += -1 * particle_mass * magnitude * shared_pressure * direction / densities[i]
+		pressure_force += particle_mass / densities[i] * magnitude * shared_pressure * direction 
 	
 	return pressure_force
 
@@ -154,34 +169,22 @@ func _calculate_viscocity_force_at(particle_index: int) -> Vector2:
 	
 	for i in _get_spatial_bucket_neighbours(pos):
 		var distance = pos.distance_to(positions[i])
-		var influence = _smoothing_function(distance)
-		viscocity_force += (velocities[i] - velocities[particle_index]) * influence
+		var influence = _density_kernel(distance)
+		viscocity_force += (velocities[i] - velocities[particle_index]) * influence / densities[i]
 
 	return viscocity_force * viscocity
-
-func _smoothing_function(dst: float) -> float:
-	return max(0, pow(smoothing_radius - dst, 3)) / (PI * pow(smoothing_radius, 5) / 10) # Divide by this to normalize (integral will always be 1) because the total contribution of a single particle to the density should NOT depend on the smoothing radius
-func _smoothing_function_derivative(dst: float) -> float:
-	return 0.0 if dst > smoothing_radius else -3 * pow(smoothing_radius - dst, 2) / (PI * pow(smoothing_radius, 5) / 10) # Divide by this to normalize (integral will always be 1) because the total contribution of a single particle to the density should NOT depend on the smoothing radius
+	
+func _density_kernel(dst: float) -> float:
+	if dst >= smoothing_radius:
+		return 0
+	var factor = pow(smoothing_radius, 3) * PI / 1.5
+	return pow(smoothing_radius - dst, 2) / factor
+func _density_kernel_derivative(dst: float) -> float:
+	if dst >= smoothing_radius:
+		return 0
+	var factor = pow(smoothing_radius, 3) * PI / 1.5
+	return -2 * (smoothing_radius - dst) / factor
 	
 # The further we are from the target density, the faster the particle should move, and the more pressure should be applied to it.
 func _density_to_pressure(density: float) -> float:
-	return (density - target_density) * pressure_multiplier
-	
-
-#Particles:
-	#Smoothing radius
-	#Smoothing function
-	# Normalizing the smoothing function:
-	# Why do we normalize? Because the total contribution of a single particle to the density should NOT depend on the smoothing radius.
-	# In other words, the integral of the smoothing function should be constant.
-	# Plug into desmos 3D for a visualization of non-normalized (the last 2 lines are the normalized form). Move radius, the total contribution (which is the volume of the surface) changes with respect to R
-	# R=1
-	# r=R
-	# z=\max\left(0,\ \left(R-r\right)^{3}\right)\left\{z>0\right\}
-	# \int_{0}^{2\pi}\int_{0}^{R}\max\left(0,\ \left(R-r\right)^{3}\right)rdrd\theta
-	# z=\frac{\max\left(0,\ \left(R-r\right)^{3}\right)}{\frac{\pi R^{5}}{10}}\left\{z>0\right\}
-	# \int_{0}^{2\pi}\int_{0}^{R}\frac{\max\left(0,\ \left(R-r\right)^{3}\right)}{\frac{\pi R^{5}}{10}}rdrd\theta
-	# We just need to divide by some mulitple of R^5 to normalize it. Here we divide by pi R^5 / 10 just to make it equal to 1
-		#Need Derivative of smoothing function
-	#The influence of each particle is determined by the smoothing function. Has 0 influence at distance > smoothing radius
+	return max(0, (density - target_density) * pressure_multiplier) # Clamp to 0 so there aren't any attractive forces (attractive forces don't really play well and look odd)

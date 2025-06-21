@@ -15,8 +15,7 @@ z_index = -1
 y_sort_enabled = true
 script = ExtResource("1_3y61u")
 particle_mass = 1000.0
-pressure_multiplier = 0.0
-gravity = 0.0
+target_density = 0.001
 
 [node name="GPUParticles2D" type="GPUParticles2D" parent="."]
 texture = ExtResource("3_i38t2")

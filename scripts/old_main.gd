@@ -5,10 +5,11 @@ extends Node2D
 @export_range(0, 500) var particle_count: int = 100
 @export_range(0, 1000) var smoothing_radius: float = 250
 @export_range(0, 5000) var particle_mass: float = 100
-@export_range(0, 50000) var pressure_multiplier: float = 25000
+@export_range(0, 100000) var pressure_multiplier: float = 25000
 @export_range(0, 2500) var target_density: float = 0.01
 @export_range(0, 500) var gravity: float = 25
 @export_range(0, 1) var elasticity: float = 0.75
+@export var viscocity: float = 1000
 
 var image_size = int(ceil(sqrt(particle_count)))
 var particle_positions: Array[Vector2] = []
@@ -92,6 +93,7 @@ func _update_pressure_gradients(positions):
 		
 func _calculate_pressure_gradient(index: int, positions):
 	var pressure_gradient: Vector2 = Vector2.ZERO
+	var viscocity_force: Vector2 = Vector2.ZERO
 	for i in particle_count:
 		var distance = positions[index].distance_to(particle_positions[i])
 		# If distance is 0 (the two particles are on top of eachother, or it's comparing to itself), choose a random direction.
@@ -99,7 +101,9 @@ func _calculate_pressure_gradient(index: int, positions):
 		var magnitude = smoothing_function_derivative(smoothing_radius, distance)
 		var shared_pressure = (_density_to_pressure(densities[index]) + _density_to_pressure(densities[i]))/2
 		pressure_gradient += shared_pressure * particle_mass / densities[i] * direction * magnitude
-	return pressure_gradient
+		var influence = smoothing_function(smoothing_radius, distance)
+		viscocity_force += (velocities[i] - velocities[index]) * influence
+	return pressure_gradient + (viscocity_force * viscocity * densities[index])
 
 func _calculate_value(pos: Vector2, positions):
 	var value = 0.0

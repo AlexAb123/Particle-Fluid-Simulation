@@ -2,3 +2,4 @@ res://scenes/old_main.tscn
 res://shaders/particle.gdshader
 res://scripts/main.gd
 res://scenes/main.tscn
+res://scripts/old_main.gd
