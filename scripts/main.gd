@@ -8,6 +8,7 @@ extends Node2D
 @export var gravity: float = 0
 @export_range(0, 1) var elasticity: float = 0.95
 @export var viscocity: float = 50
+@export var steps_per_frame: int = 2
 
 @export var gradient: Gradient
 
@@ -37,21 +38,18 @@ func _process(delta: float) -> void:
 	
 	fps_counter.text = str(int(Engine.get_frames_per_second())) + " fps"
 	
-	_simulate_step(delta)
-	_simulate_step(delta)
-	_simulate_step(delta)
-	_simulate_step(delta)
+	for i in range(steps_per_frame):
+		_simulate_step(delta)
+
 	
-	var total = 0
-	for d in densities:
-		total += d
-		
-	print("Total Density: " + str(total))
-	
-	print("Density: " + str(densities[0]))
-	print("Density Error: " + str(densities[0] - target_density))
-	print("Pressure: " + str(pressures[0]))
-	print("Pressure Force: " + str(_calculate_pressure_force_at(0).length()))
+	#var total = 0
+	#for d in densities:
+		#total += d
+	#print("Total Density: " + str(total))
+	#
+	#print("Density: " + str(densities[0]))
+	#print("Density Error: " + str(densities[0] - target_density))
+	#print("Pressure: " + str(pressures[0]))
 	
 	queue_redraw()
 	
@@ -66,10 +64,7 @@ func _simulate_step(delta: float) -> void:
 func _draw():
 	for i in range(particle_count):
 		var pos = positions[i]
-		if i == 0:
-			draw_circle(pos, 3, Color.RED)
-		else:
-			draw_circle(pos, 3, gradient.sample(densities[i] - target_density))
+		draw_circle(pos, 3, gradient.sample(velocities[i].length()/250))
  
 func _get_spatial_bucket(pos: Vector2) -> Vector2i:
 	return Vector2i(int(pos.x/smoothing_radius), int(pos.y/smoothing_radius))
@@ -138,41 +133,30 @@ func _calculate_density_at(particle_index: int) -> float:
 	
 func _update_forces():
 	for i in range(particle_count):
-		forces[i] = _calculate_pressure_force_at(i) + _calculate_viscocity_force_at(i)
-	
-func _calculate_pressure_force_at(particle_index: int) -> Vector2:
-	
+		forces[i] = _calculate_forces_at(i)
+
+func _calculate_forces_at(particle_index: int) -> Vector2:
 	var pos: Vector2 = positions[particle_index]
 	var pressure: float = pressures[particle_index]
 	var pressure_force: Vector2 = Vector2.ZERO
-	
+	var viscocity_force: Vector2 = Vector2.ZERO
 	for i in _get_spatial_bucket_neighbours(pos):
-		
 		if particle_index == i: # Particle doesn't exert a force on itself
-			continue
-			
+				continue
 		var other_pos: Vector2 = positions[i]
 		var distance = pos.distance_to(other_pos)
 		if distance > smoothing_radius: # If other particle is outside of smoothing radius, it won't apply any force on this particle
 			continue
+			
 		var magnitude = _density_kernel_derivative(distance)
-		# If distance is 0 (the two particles are on top of eachother), choose a random direction.
 		var direction = Vector2(1, 0).rotated(randf_range(0.0, 2*PI)) if distance == 0 else (other_pos - pos) / distance
 		var shared_pressure = (pressure + pressures[i]) / 2
-		pressure_force += particle_mass / densities[i] * magnitude * shared_pressure * direction 
-	
-	return pressure_force
-
-func _calculate_viscocity_force_at(particle_index: int) -> Vector2:
-	var viscocity_force: Vector2 = Vector2.ZERO
-	var pos: Vector2 = positions[particle_index]
-	
-	for i in _get_spatial_bucket_neighbours(pos):
-		var distance = pos.distance_to(positions[i])
+		pressure_force += particle_mass / densities[i] * magnitude * shared_pressure * direction
+		
 		var influence = _density_kernel(distance)
-		viscocity_force += (velocities[i] - velocities[particle_index]) * influence / densities[i]
-
-	return viscocity_force * viscocity
+		viscocity_force += viscocity * (velocities[i] - velocities[particle_index]) * influence / densities[i]
+	
+	return pressure_force + viscocity_force
 	
 func _density_kernel(dst: float) -> float:
 	if dst >= smoothing_radius:
