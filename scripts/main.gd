@@ -79,8 +79,7 @@ func _update_spatial_buckets():
 
 func _update_velocities(delta: float) -> void:
 	for i in range(particle_count):
-		velocities[i] += forces[i] / densities[i] * delta
-		velocities[i] += Vector2(0, gravity) * delta
+		velocities[i] += (forces[i] + Vector2(0, gravity)) / densities[i] * delta
 
 func _update_positions(delta: float):
 	for i in range(particle_count):
