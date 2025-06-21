@@ -51,7 +51,7 @@ func _simulate_step(delta: float) -> void:
 func _draw():
 	for i in range(particle_count):
 		var pos = positions[i]
-		var value = velocities[i].length() * 50 - 6
+		var value = velocities[i].length()
 		draw_circle(pos, 3, gradient.sample(value))
  
 func _get_spatial_bucket(pos: Vector2) -> Vector2i:
@@ -79,7 +79,7 @@ func _update_spatial_buckets():
 
 func _update_velocities(delta: float) -> void:
 	for i in range(particle_count):
-		velocities[i] += forces[i] / particle_mass * delta
+		velocities[i] += forces[i] / densities[i] * delta
 		velocities[i] += Vector2(0, gravity) * delta
 
 func _update_positions(delta: float):
@@ -101,8 +101,12 @@ func _update_positions(delta: float):
 			velocities[i].y *= -1 * elasticity
 
 func _update_densities() -> void:
+	var total = 0
 	for i in range(particle_count):
 		densities[i] = _calculate_density_at(i)
+		total += densities[i]
+	print("average density: " + str(total / particle_count))
+		
 func _update_pressures() -> void:
 	for i in range(particle_count):
 		pressures[i] = _density_to_pressure(densities[i])
@@ -120,14 +124,7 @@ func _calculate_density_at(particle_index: int) -> float:
 	
 func _update_forces():
 	for i in range(particle_count):
-		var v = _calculate_viscocity_force_at(i)
-		var p = _calculate_pressure_force_at(i)
-		forces[i] = p + v
-		if i == 0:
-			print(v)
-			print(p)
-			print()
-		
+		forces[i] = _calculate_pressure_force_at(i) + _calculate_viscocity_force_at(i)
 	
 func _calculate_pressure_force_at(particle_index: int) -> Vector2:
 	

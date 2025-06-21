@@ -23,8 +23,9 @@ gdscript/warnings/integer_division=0
 
 [display]
 
-window/size/viewport_width=400
-window/size/viewport_height=300
+window/size/viewport_width=1000
+window/size/viewport_height=800
+window/size/initial_position_type=3
 
 [input]
 
