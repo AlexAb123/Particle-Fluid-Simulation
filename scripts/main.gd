@@ -7,6 +7,7 @@ extends Node2D
 @export var target_density: float = 3
 @export var gravity: float = 0
 @export_range(0, 1) var elasticity: float = 0.95
+@export var viscocity: float = 1000
 
 @export var gradient: Gradient
 
@@ -14,7 +15,7 @@ var positions: PackedVector2Array = PackedVector2Array()
 var velocities: PackedVector2Array = PackedVector2Array()
 var densities: PackedFloat32Array = PackedFloat32Array()
 var pressures: PackedFloat32Array = PackedFloat32Array()
-var pressure_forces: PackedVector2Array = PackedVector2Array()
+var forces: PackedVector2Array = PackedVector2Array()
 
 @onready var fps_counter: Label = $FPSCounter
 
@@ -29,10 +30,9 @@ func _ready():
 		velocities.append(Vector2(0,0))
 		densities.append(0.0)
 		pressures.append(0.0)
-		pressure_forces.append(Vector2(0,0))
+		forces.append(Vector2(0,0))
 
 func _process(delta: float) -> void:
-	print(densities[0])
 	
 	fps_counter.text = str(int(Engine.get_frames_per_second())) + " fps"
 	
@@ -44,7 +44,7 @@ func _simulate_step(delta: float) -> void:
 	_update_spatial_buckets()
 	_update_densities()
 	_update_pressures()
-	_update_pressure_forces()
+	_update_forces()
 	_update_velocities(delta)
 	_update_positions(delta)
 
@@ -79,7 +79,7 @@ func _update_spatial_buckets():
 
 func _update_velocities(delta: float) -> void:
 	for i in range(particle_count):
-		velocities[i] += pressure_forces[i] / particle_mass * delta
+		velocities[i] += forces[i] / particle_mass * delta
 		velocities[i] += Vector2(0, gravity) * delta
 
 func _update_positions(delta: float):
@@ -118,9 +118,16 @@ func _calculate_density_at(particle_index: int) -> float:
 		density += influence * particle_mass
 	return density
 	
-func _update_pressure_forces():
+func _update_forces():
 	for i in range(particle_count):
-		pressure_forces[i] = _calculate_pressure_force_at(i)
+		var v = _calculate_viscocity_force_at(i)
+		var p = _calculate_pressure_force_at(i)
+		forces[i] = p + v
+		if i == 0:
+			print(v)
+			print(p)
+			print()
+		
 	
 func _calculate_pressure_force_at(particle_index: int) -> Vector2:
 	
@@ -149,7 +156,12 @@ func _calculate_viscocity_force_at(particle_index: int) -> Vector2:
 	var viscocity_force: Vector2 = Vector2.ZERO
 	var pos: Vector2 = positions[particle_index]
 	
-	for i in _get_spatial_bucket_neighbours()
+	for i in _get_spatial_bucket_neighbours(pos):
+		var distance = pos.distance_to(positions[i])
+		var influence = _smoothing_function(distance)
+		viscocity_force += (velocities[i] - velocities[particle_index]) * influence
+
+	return viscocity_force * viscocity
 
 func _smoothing_function(dst: float) -> float:
 	return max(0, pow(smoothing_radius - dst, 3)) / (PI * pow(smoothing_radius, 5) / 10) # Divide by this to normalize (integral will always be 1) because the total contribution of a single particle to the density should NOT depend on the smoothing radius
