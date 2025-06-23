@@ -6,3 +6,4 @@ res://scenes/old_main.tscn
 res://shaders/particle.gdshader
 res://particle.gdshader
 res://shaders/old_particle.gdshader
+res://shaders/particle_shader.gdshader

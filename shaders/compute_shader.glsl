@@ -17,4 +17,5 @@ velocities;
 // The code we want to execute in each invocation
 void main() {
     positions.data[gl_GlobalInvocationID.x] += velocities.data[gl_GlobalInvocationID.x];
+    positions.data[gl_GlobalInvocationID.x + 1] += velocities.data[gl_GlobalInvocationID.x + 1];
 }

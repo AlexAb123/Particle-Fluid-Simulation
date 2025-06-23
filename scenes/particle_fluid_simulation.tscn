@@ -1,19 +1,16 @@
-[gd_scene load_steps=5 format=3 uid="uid://qjeep82n4f7t"]
+[gd_scene load_steps=4 format=3 uid="uid://qjeep82n4f7t"]
 
 [ext_resource type="Script" uid="uid://dhdtlqk1jyglu" path="res://scripts/particle_fluid_simulation.gd" id="1_86u53"]
-[ext_resource type="Texture2D" uid="uid://h4upkqds6pv0" path="res://sprites/particle.png" id="2_wti10"]
+[ext_resource type="Shader" uid="uid://syvbrwrqshie" path="res://shaders/particle_shader.gdshader" id="2_o62gx"]
 
-[sub_resource type="QuadMesh" id="QuadMesh_o62gx"]
-
-[sub_resource type="MultiMesh" id="MultiMesh_86u53"]
-mesh = SubResource("QuadMesh_o62gx")
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_o62gx"]
+shader = ExtResource("2_o62gx")
 
 [node name="ParticleFluidSimulation" type="Node2D"]
 script = ExtResource("1_86u53")
 
-[node name="MultiMeshInstance2D" type="MultiMeshInstance2D" parent="."]
-multimesh = SubResource("MultiMesh_86u53")
-texture = ExtResource("2_wti10")
+[node name="GPUParticles2D" type="GPUParticles2D" parent="."]
+process_material = SubResource("ShaderMaterial_o62gx")
 
 [node name="FPSCounter" type="Label" parent="."]
 offset_right = 40.0
