@@ -48,7 +48,7 @@ void main() {
     vec4 particle_info = vec4(
         positions[index].x,
         positions[index].y,
-        0.0, // unused for now
+        velocities[index].x * velocities[index].x + velocities[index].y * velocities[index].y,
         0.0 // unused for now
     );
 

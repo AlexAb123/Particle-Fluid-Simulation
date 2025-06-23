@@ -156,11 +156,6 @@ func _simulation_step() -> void:
 	# Submit to GPU and wait for sync
 	rd.submit()
 	rd.sync()
-	
-	var positions_bytes := rd.buffer_get_data(positions_buffer)
-	var positions_floats = positions_bytes.to_float32_array()
-	print(positions_floats)
-		
 
 func _process(delta: float) -> void:
 	fps_counter.text = str(int(Engine.get_frames_per_second())) + " fps"

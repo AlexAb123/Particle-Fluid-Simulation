@@ -15,8 +15,9 @@ void process() {
 
 	vec4 data = texelFetch(particle_data, pixel_coord, 0);
 
-
 	vec2 pos = data.xy;
 
 	TRANSFORM[3].xy = pos;
+	
+	COLOR = vec4(data.z*0.3, 1, 1, 1);
 }
