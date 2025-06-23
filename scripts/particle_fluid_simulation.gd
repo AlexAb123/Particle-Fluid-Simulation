@@ -11,17 +11,18 @@ extends Node2D
 @export var steps_per_frame: int = 2
 
 
-var positions: PackedFloat32Array = PackedFloat32Array()
-var velocities: PackedFloat32Array = PackedFloat32Array()
+var positions: PackedVector2Array = PackedVector2Array()
+var velocities: PackedVector2Array = PackedVector2Array()
 var densities: PackedFloat32Array = PackedFloat32Array()
 var pressures: PackedFloat32Array = PackedFloat32Array()
-var forces: PackedFloat32Array = PackedFloat32Array()
+var forces: PackedVector2Array = PackedVector2Array()
 
 var screen_width: float
 var screen_height: float
 
 @onready var fps_counter: Label = $FPSCounter
 @onready var gpu_particles_2d: GPUParticles2D = $GPUParticles2D
+var process_material: ShaderMaterial
 
 var particle_data_image: Image
 var particle_data_texture : ImageTexture
@@ -40,17 +41,20 @@ func _ready():
 	for i in range(particle_count):
 		#positions.append(randf() * screen_width
 		#positions.append(randf() * screen_height
-		positions.append(0)
-		positions.append(0)
-		velocities.append(1)
-		velocities.append(2)
+		positions.append(Vector2(0, 0))
+		velocities.append(Vector2(1, 1))
 		#positions.append(randf() * screen_width/4 + screen_width/2 - screen_width/8)
 		#positions.append(randf() * screen_height/4 + screen_height/2 - screen_height/8)
 		
+	process_material = gpu_particles_2d.process_material as ShaderMaterial
+	process_material.set_shader_parameter("particle_count", particle_count)
+	process_material.set_shader_parameter("image_size", image_size)
 	print(positions)
 	print(velocities)
 	
 	RenderingServer.call_on_render_thread(_setup_shaders)
+	
+	
 
 var rd: RenderingDevice
 
@@ -62,13 +66,11 @@ var positions_buffer: RID
 var velocities_buffer: RID
 
 
-
 func _setup_shaders() -> void:
 	# Create a local rendering device.
-	rd = RenderingServer.create_local_rendering_device()
+	rd = RenderingServer.get_rendering_device()
 	
 	# --- Connect Compute Shader to Particle Shader ---
-	var process_material := gpu_particles_2d.process_material as ShaderMaterial
 	
 	var fmt := RDTextureFormat.new()
 	fmt.width = image_size
@@ -151,7 +153,6 @@ func _simulation_step() -> void:
 	
 	rd.compute_list_dispatch(compute_list, ceil(particle_count/1024.0), 1, 1)
 	rd.compute_list_end()
-
 	# Submit to GPU and wait for sync
 	rd.submit()
 	rd.sync()

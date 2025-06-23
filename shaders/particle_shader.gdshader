@@ -1,15 +1,22 @@
 shader_type particles;
 
 uniform sampler2D particle_data;
-
-void process() {
-	// Called every frame on existing particles (according to the Fixed FPS property).
-
-	// TRANSFORM[3] is the position row of the TRANSFORM matrix
-    TRANSFORM[3][0] = 400.0;  // x position
-    TRANSFORM[3][1] = 300.0;  // y position
-}
+uniform int particle_count;
+uniform int image_size;
 
 void start() {
-	// Called when a particle is spawned.
+
+}
+
+void process() {
+
+	int index = int(INDEX);
+	ivec2 pixel_coord = ivec2(index % image_size, index / image_size);
+
+	vec4 data = texelFetch(particle_data, pixel_coord, 0);
+
+
+	vec2 pos = data.xy;
+
+	TRANSFORM[3].xy = pos;
 }

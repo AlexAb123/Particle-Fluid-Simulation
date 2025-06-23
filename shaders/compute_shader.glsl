@@ -5,16 +5,14 @@
 layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
 
 layout(set = 0, binding = 0, std430) restrict buffer Positions {
-    float data[];
-}
-positions;
+    vec2 positions[];  // Direct array
+};
 
 layout(set = 0, binding = 1, std430) restrict buffer Velocities {
-    float data[];
-}
-velocities;
+    vec2 velocities[];
+};
 
-layout(std430, set = 0, binding = 2) buffer Params {
+layout(set = 0, binding = 2, std430) restrict buffer Params {
 	uint particle_count;
     float screen_width;
     float screen_height;
@@ -30,33 +28,29 @@ layout(std430, set = 0, binding = 2) buffer Params {
 }
 params;
 
-layout(rgba16f, set = 0, binding = 3) restrict writeonly uniform image2D particle_data;
+layout(binding = 3, rgba16f) uniform image2D particle_data;
 
 // The code we want to execute in each invocation
 void main() {
 
     int index = int(gl_GlobalInvocationID.x);
 
-    if (index > params.particle_count) {
+    if (index >= params.particle_count) {
         return;
     }
 
-    int x = index * 2;
-    int y = index * 2 + 1;
+    positions[index].x += velocities[index].x / 100;
+    positions[index].y += velocities[index].y / 100;
 
-    positions.data[x] = params.image_size;
-    positions.data[y] += velocities.data[y];
-
-/*     int image_size = int(ceil(sqrt(float(particle_count))));
-    ivec2 pixel_coord = ivec2(index % image_size, index / image_size);
+    ivec2 pixel_coord = ivec2(index % params.image_size, index / params.image_size);
     
-    // Store position.xy in RG, velocity angle in B, and any other data in A
+    // vec4 because it stores RGBA
     vec4 particle_info = vec4(
         positions[index].x,
-        positions[index].y, 
-        atan(velocities[index].y, velocities[index].x), // velocity angle
+        positions[index].y,
+        0.0, // unused for now
         0.0 // unused for now
     );
-    
-    imageStore(particle_data, pixel_coord, particle_info); */
+
+    imageStore(particle_data, pixel_coord, particle_info);
 }
