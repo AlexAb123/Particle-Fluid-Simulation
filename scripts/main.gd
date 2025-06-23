@@ -24,6 +24,7 @@ var forces: PackedVector2Array = PackedVector2Array()
 var spatial_buckets: Dictionary[Vector2i, PackedInt32Array] = {}
 
 func _ready():
+	
 	var width = get_viewport_rect().size.x
 	var height = get_viewport_rect().size.y
 	for i in range(particle_count):
@@ -42,6 +43,7 @@ func _process(delta: float) -> void:
 		_simulate_step(delta)
 
 	
+	queue_redraw()
 	#var total = 0
 	#for d in densities:
 		#total += d
@@ -51,7 +53,6 @@ func _process(delta: float) -> void:
 	#print("Density Error: " + str(densities[0] - target_density))
 	#print("Pressure: " + str(pressures[0]))
 	
-	queue_redraw()
 	
 func _simulate_step(delta: float) -> void:
 	_update_spatial_buckets()

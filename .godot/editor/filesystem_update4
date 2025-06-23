@@ -1,2 +1,8 @@
 res://scenes/main.tscn
+res://scripts/main.gd
+res://scripts/particle_fluid_simulation.gd
+res://scenes/particle_fluid_simulation.tscn
+res://scenes/old_main.tscn
 res://shaders/particle.gdshader
+res://particle.gdshader
+res://shaders/old_particle.gdshader
