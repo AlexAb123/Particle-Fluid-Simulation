@@ -69,7 +69,7 @@ var uniform_set: RID
 var pipeline: RID
 
 # Compute Shader Pipelines
-var clear_bucket_counts_pipeline: RID # Clears bucket_counts array in preparation of running counting sort. Needs bucket_count invocations.
+var clear_bucket_counts_pipeline
 var count_buckets_pipeline: RID # Counts buckets for bucket sort. Needs bucket_count invocations.
 var prefix_sum_pipeline: RID # Runs a prefix sum on bucket_counts and generates bucket_offsets for quick neighbour search. Needs 1 invocation (because it does not yet use a parallel prefix sum algorithm).
 var scatter_pipeline: RID # Scatters the prefix sum to create particles_by_bucket which is used alongside bucket_offsets for quick neighbour search. Needs particle_count invocations.
@@ -77,34 +77,49 @@ var densities_pipeline: RID # Calculates densities and pressure to every particl
 var forces_pipeline: RID # Uses density and pressure calculations to caluclate and apply forces to every particle. Needs particle_count invocations.
 
 # Buffers
+var bucket_indices_buffer: RID
+var bucket_counts_buffer: RID
+var bucket_prefix_sum_buffer: RID
+var bucket_offsets_buffer: RID
+var particles_by_bucket_buffer: RID
 var positions_buffer: RID
 var velocities_buffer: RID
-
+var densities_buffer: RID
+var pressures_buffer: RID
+var forces_buffer: RID
 
 func _setup_shaders() -> void:
-	# Create a local rendering device.
+	
+	# Get global rendering device
 	rd = RenderingServer.get_rendering_device()
 	
-	# --- Connect Compute Shader to Particle Shader ---
+	# Connect compute shader to particle shader
 	var fmt := RDTextureFormat.new()
 	fmt.width = image_size
 	fmt.height = image_size
 	fmt.format = RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT
 	fmt.usage_bits = RenderingDevice.TEXTURE_USAGE_SAMPLING_BIT | RenderingDevice.TEXTURE_USAGE_STORAGE_BIT
-	
 	var view := RDTextureView.new()
 	particle_data_buffer = rd.texture_create(fmt, view, [particle_data_image.get_data()])
 	particle_data_texture_rd = Texture2DRD.new()
 	particle_data_texture_rd.texture_rd_rid = particle_data_buffer # Connect texture to buffer
 	process_material.set_shader_parameter("particle_data", particle_data_texture_rd) # Texture stored by reference, will be updated in the particle shader once the compute shader edits it
-	# --- === ---
+	
+	# Initialize Pipelines
+	clear_bucket_counts_pipeline = _create_compute_pipeline(load("res://shaders/compute/clear_bucket_counts.glsl"))
+	count_buckets_pipeline = _create_compute_pipeline(load("res://shaders/compute/count_buckets.glsl"))
+	prefix_sum_pipeline = _create_compute_pipeline(load("res://shaders/compute/prefix_sum.glsl"))
+	scatter_pipeline = _create_compute_pipeline(load("res://shaders/compute/scatter.glsl"))
+	densities_pipeline = _create_compute_pipeline(load("res://shaders/compute/densities.glsl"))
+	forces_pipeline = _create_compute_pipeline(load("res://shaders/compute/forces.glsl"))
+	
 	
 	# Load GLSL shader
 	var shader_file := load("res://shaders/compute/forces.glsl")
 	var shader_spirv: RDShaderSPIRV = shader_file.get_spirv()
 	var shader := rd.shader_create_from_spirv(shader_spirv)
 	
-	# Create Buffers
+	# Create buffers
 	var positions_bytes := positions.to_byte_array()
 	positions_buffer = rd.storage_buffer_create(positions_bytes.size(), positions_bytes)
 	var velocities_bytes := velocities.to_byte_array()
@@ -116,7 +131,6 @@ func _setup_shaders() -> void:
 	var params_uniform := _create_params_uniform(2)
 	var particle_data_uniform = _create_uniform(particle_data_buffer, RenderingDevice.UNIFORM_TYPE_IMAGE, 3)
 	
-
 	uniform_set = rd.uniform_set_create(
 		[positions_uniform, 
 		velocities_uniform,
@@ -124,19 +138,16 @@ func _setup_shaders() -> void:
 		particle_data_uniform],
 		shader, 
 		0) # the last parameter (the 0) needs to match the "set" in our shader file
-
-	# Create a compute pipeline 
+		
 	pipeline = rd.compute_pipeline_create(shader)
 	
+
 func _create_uniform(buffer: RID, uniform_type: RenderingDevice.UniformType, binding: int) -> RDUniform:
 	var uniform := RDUniform.new()
 	uniform.uniform_type = uniform_type
 	uniform.binding = binding
 	uniform.add_id(buffer)
 	return uniform
-	
-	
-	
 	
 func _create_params_uniform(binding: int) -> RDUniform:
 	var params_bytes := PackedByteArray()
@@ -156,16 +167,17 @@ func _create_params_uniform(binding: int) -> RDUniform:
 	params_bytes.encode_float(48, viscocity)
 	params_bytes.encode_u32(52, steps_per_frame)
 	params_bytes.encode_u32(56, image_size)
-
+	
 	var params_buffer = rd.storage_buffer_create(params_bytes.size(), params_bytes)
 	return _create_uniform(params_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, binding)
 	
 func _simulation_step() -> void:
 	_run_compute_pipeline(pipeline, uniform_set, ceil(particle_count/1024.0))
 
-#func _create_spatial_hash_pipeline() -> RID:
-	#
-	#return null
+func _create_compute_pipeline(shader_file: Resource) -> RID:
+	var shader_spirv: RDShaderSPIRV = shader_file.get_spirv()
+	var shader := rd.shader_create_from_spirv(shader_spirv)
+	return rd.compute_pipeline_create(shader)
 
 func _run_compute_pipeline(pipeline: RID, uniform_set: RID, thread_count: int) -> void:
 	var compute_list := rd.compute_list_begin()

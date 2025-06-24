@@ -51,7 +51,7 @@ layout(set = 0, binding = 7, std430) restrict buffer Velocities {
     vec2 velocities[];
 };
 
-layout(binding = 3, rgba16f) uniform image2D particle_data;
+layout(binding = 8, rgba16f) uniform image2D particle_data;
 
 uint grid_pos_to_bucket_index(ivec2 grid_pos) {
     return grid_pos.y * params.grid_width + grid_pos.x; // Flattens grid into a one dimensional line
