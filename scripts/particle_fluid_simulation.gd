@@ -68,9 +68,13 @@ var rd: RenderingDevice
 var uniform_set: RID
 var pipeline: RID
 
-var pipeline1: RID # Updates spatial buckets. Positions
-var pipeline2: RID # Calculates densities and pressures. Positions, Densities, Pressures
-var pipeline3: RID # Calculates and applies forces. Positions, Velocities, Pressures, Spatial
+# Compute Shader Pipelines
+var clear_bucket_counts_pipeline: RID # Clears bucket_counts array in preparation of running counting sort. Needs bucket_count invocations.
+var count_buckets_pipeline: RID # Counts buckets for bucket sort. Needs bucket_count invocations.
+var prefix_sum_pipeline: RID # Runs a prefix sum on bucket_counts and generates bucket_offsets for quick neighbour search. Needs 1 invocation (because it does not yet use a parallel prefix sum algorithm).
+var scatter_pipeline: RID # Scatters the prefix sum to create particles_by_bucket which is used alongside bucket_offsets for quick neighbour search. Needs particle_count invocations.
+var densities_pipeline: RID # Calculates densities and pressure to every particle. Needs particle_count invocations.
+var forces_pipeline: RID # Uses density and pressure calculations to caluclate and apply forces to every particle. Needs particle_count invocations.
 
 # Buffers
 var positions_buffer: RID

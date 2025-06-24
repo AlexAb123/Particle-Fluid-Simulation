@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://xs1hph35ox0g"
+path="res://.godot/imported/count_buckets.glsl-5a5fd357161e07cf4c9eb55fe91896ee.res"
+
+[deps]
+
+source_file="res://shaders/compute/count_buckets.glsl"
+dest_files=["res://.godot/imported/count_buckets.glsl-5a5fd357161e07cf4c9eb55fe91896ee.res"]
+
+[params]
+
