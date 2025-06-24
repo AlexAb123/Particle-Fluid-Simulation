@@ -58,35 +58,3 @@ void main() {
     uint previous_bucket_index = atomicAdd(bucket_prefix_sum[bucket], 1);
     sorted_buckets[previous_bucket_index] = particle_index;
 }
-
-/*  
-vec2 positions[]
-    size = particle_count
-    maps particle index to position
-
-uint buckets[]
-    size = particle_count
-    maps particle index to bucket index
-
-uint bucket_counts[]
-    size = bucket_count
-    maps bucket_index to number of particles contained in that bucket
-    created by counting occurences in buckets[]
-
-uint bucket_prefix_sum[]
-    size = bucket_count
-    maps bucket_index to how many particles are contained in tuat bucket and all buckets before it
-    is also used as an offsets array only AFTER doing all the decrements
-    created by running a prefix sum on bucket_counts[]
-
-uint output_array[]
-    size = particle_count
-    same as buckets but sorted. This means you can use offsets array (see below) to quickly find all particles in any given bucket given the bucket_id
-    To get sorted array of buckets:
-    iterate backwards through bucket_prefix_sum[] (backwards keeps the sort stable, but you cant parellelize easily like this)
-    take the ith element and place i (the bucket index) in the bucket_prefix_sum[i]th place in the output array
-    decrement bucket_prefix_sum[i]
-
-    once all spots in output array is filled and decrements are done, bucket_prefix_sum[] acts as an offsets array
-    the offset array (bucket_prefix_sum[]) maps bucket_index to where the first 
-*/
