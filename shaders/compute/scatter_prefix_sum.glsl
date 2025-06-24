@@ -20,12 +20,13 @@ layout(set = 0, binding = 3, std430) restrict buffer BucketPrefixSum {
 };
 
 layout(set = 0, binding = 4, std430) restrict buffer BucketOffsets {
-    uint bucket_offsets[];
+    uint bucket_offsets[]; // Maps bucket index to the index in the particles_by_bucket array in which the particles contained in that bucket begin to be listed in the particles_by_bucket array
 };
 
-layout(set = 0, binding = 5, std430) restrict buffer SortedBuckets {
-    uint sorted_buckets[];
+layout(set = 0, binding = 5, std430) restrict buffer ParticlesByBucket {
+    uint particles_by_bucket[]; // Stores particle indices sorted by their bucket indices
 };
+
 
 layout(set = 0, binding = 6, std430) restrict buffer Params {
 	uint particle_count;
@@ -50,11 +51,11 @@ void main() {
 
     uint particle_index = gl_GlobalInvocationID.x;
 
-    if (particle_index >= params.particle_count) { // Will be assigning values in sorted_buckets which has length particle_count, so only use indices less than particle_count
+    if (particle_index >= params.particle_count) { // Will be assigning values in particles_by_bucket which has length particle_count, so only use indices less than particle_count
         return;
     }
 
     uint bucket = bucket_indices[particle_index];
     uint previous_bucket_index = atomicAdd(bucket_prefix_sum[bucket], 1);
-    sorted_buckets[previous_bucket_index] = particle_index;
+    particles_by_bucket[previous_bucket_index] = particle_index;
 }

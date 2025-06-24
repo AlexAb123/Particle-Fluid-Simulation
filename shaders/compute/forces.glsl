@@ -8,8 +8,24 @@ layout(set = 0, binding = 0, std430) restrict buffer Positions {
     vec2 positions[];  // Direct array
 };
 
-layout(set = 0, binding = 1, std430) restrict buffer Velocities {
-    vec2 velocities[];
+layout(set = 0, binding = 1, std430) restrict buffer BucketIndices {
+    uint bucket_indices[]; // Maps particle index to bucket index. buckets[4] stores the bucket index that the particle with index 4 is in
+};
+
+layout(set = 0, binding = 2, std430) restrict buffer BucketCounts {
+    uint bucket_counts[];
+};
+
+layout(set = 0, binding = 3, std430) restrict buffer BucketPrefixSum {
+    uint bucket_prefix_sum[];
+};
+
+layout(set = 0, binding = 4, std430) restrict buffer BucketOffsets {
+    uint bucket_offsets[]; // Maps bucket index to the index in the particles_by_bucket array in which the particles contained in that bucket begin to be listed in the particles_by_bucket array
+};
+
+layout(set = 0, binding = 5, std430) restrict buffer ParticlesByBucket {
+    uint particles_by_bucket[]; // Stores particle indices sorted by their bucket indices
 };
 
 layout(set = 0, binding = 6, std430) restrict buffer Params {
@@ -31,7 +47,19 @@ layout(set = 0, binding = 6, std430) restrict buffer Params {
 }
 params;
 
-layout(binding = 3, rgba16f) restrict writeonly uniform image2D particle_data;
+layout(set = 0, binding = 7, std430) restrict buffer Velocities {
+    vec2 velocities[];
+};
+
+layout(binding = 3, rgba16f) uniform image2D particle_data;
+
+uint grid_pos_to_bucket_index(ivec2 grid_pos) {
+    return grid_pos.y * params.grid_width + grid_pos.x; // Flattens grid into a one dimensional line
+}
+
+ivec2 pos_to_grid_pos(vec2 pos) {
+    return ivec2(pos / params.smoothing_radius);
+}
 
 // The code we want to execute in each invocation
 void main() {

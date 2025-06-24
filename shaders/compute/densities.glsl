@@ -21,11 +21,11 @@ layout(set = 0, binding = 3, std430) restrict buffer BucketPrefixSum {
 };
 
 layout(set = 0, binding = 4, std430) restrict buffer BucketOffsets {
-    uint bucket_offsets[];
+    uint bucket_offsets[]; // Maps bucket index to the index in the particles_by_bucket array in which the particles contained in that bucket begin to be listed in the particles_by_bucket array
 };
 
-layout(set = 0, binding = 5, std430) restrict buffer SortedBuckets {
-    uint sorted_buckets[];
+layout(set = 0, binding = 5, std430) restrict buffer ParticlesByBucket {
+    uint particles_by_bucket[]; // Stores particle indices sorted by their bucket indices
 };
 
 layout(set = 0, binding = 6, std430) restrict buffer Params {
@@ -50,7 +50,6 @@ params;
 layout(set = 0, binding = 7, std430) restrict buffer Velocities {
     vec2 velocities[];
 };
-
 
 layout(binding = 3, rgba16f) uniform image2D particle_data;
 
@@ -85,12 +84,12 @@ void main() {
 
             uint neighbour_bucket_index = grid_pos_to_bucket_index(neighbour_grid_pos);
             uint start = bucket_offsets[neighbour_bucket_index];
-            uint end = neighbour_bucket_index + 1 < params.bucket_count ? bucket_offsets[neighbour_bucket_index + 1] : params.particle_count; // End at the next offset if it exists, else end at the end of the sorted_buckets array (size of sorted_buckets array is particle_count)
+            uint end = neighbour_bucket_index + 1 < params.bucket_count ? bucket_offsets[neighbour_bucket_index + 1] : params.particle_count; // End at the next offset if it exists, else end at the end of the particles_by_bucket array (size of particles_by_bucket array is particle_count)
 
             // Iterate over all particle indices in neighbour_bucket_index
             for (uint i = start; i < end; i++) {
 
-                uint neighbour_index = sorted_buckets[i];
+                uint neighbour_index = particles_by_bucket[i];
 
             }
 
