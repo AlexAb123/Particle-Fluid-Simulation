@@ -8,11 +8,27 @@ layout(set = 0, binding = 0, std430) restrict buffer Positions {
     vec2 positions[];  // Direct array
 };
 
-layout(set = 0, binding = 1, std430) restrict buffer Velocities {
-    vec2 velocities[];
+layout(set = 0, binding = 1, std430) restrict buffer BucketIndices {
+    uint bucket_indices[]; // Maps particle index to bucket index. buckets[4] stores the bucket index that the particle with index 4 is in
 };
 
-layout(set = 0, binding = 3, std430) restrict buffer Params {
+layout(set = 0, binding = 2, std430) restrict buffer BucketCounts {
+    uint bucket_counts[];
+};
+
+layout(set = 0, binding = 3, std430) restrict buffer BucketPrefixSum {
+    uint bucket_prefix_sum[];
+};
+
+layout(set = 0, binding = 4, std430) restrict buffer BucketOffsets {
+    uint bucket_offsets[];
+};
+
+layout(set = 0, binding = 5, std430) restrict buffer SortedBuckets {
+    uint sorted_buckets[];
+};
+
+layout(set = 0, binding = 6, std430) restrict buffer Params {
 	uint particle_count;
     float screen_width;
     float screen_height;
@@ -31,29 +47,21 @@ layout(set = 0, binding = 3, std430) restrict buffer Params {
 }
 params;
 
+layout(set = 0, binding = 7, std430) restrict buffer Velocities {
+    vec2 velocities[];
+};
+
+
 layout(binding = 3, rgba16f) uniform image2D particle_data;
 
 // The code we want to execute in each invocation
 void main() {
 
-    int index = int(gl_GlobalInvocationID.x);
+    int particle_index = int(gl_GlobalInvocationID.x);
 
-    if (index >= params.particle_count) {
+    if (particle_index >= params.particle_count) {
         return;
     }
 
-    positions[index].x += velocities[index].x / 100;
-    positions[index].y += velocities[index].y / 100;
-
-    ivec2 pixel_coord = ivec2(index % params.image_size, index / params.image_size);
-    
-    // vec4 because it stores RGBA
-    vec4 particle_info = vec4(
-        positions[index].x,
-        positions[index].y,
-        velocities[index].x * velocities[index].x + velocities[index].y * velocities[index].y,
-        0.0 // unused for now
-    );
-
-    imageStore(particle_data, pixel_coord, particle_info);
+    bucket_index = bucket_indices[particle_index]
 }

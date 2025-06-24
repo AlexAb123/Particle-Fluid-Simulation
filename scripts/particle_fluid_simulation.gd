@@ -157,23 +157,20 @@ func _create_params_uniform(binding: int) -> RDUniform:
 	return _create_uniform(params_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, binding)
 	
 func _simulation_step() -> void:
-	
-	var compute_list := rd.compute_list_begin()
-	rd.compute_list_bind_compute_pipeline(compute_list, pipeline)
-	rd.compute_list_bind_uniform_set(compute_list, uniform_set, 0)
-	
-	rd.compute_list_dispatch(compute_list, ceil(particle_count/1024.0), 1, 1)
-	rd.compute_list_end()
-	# Submit to GPU and wait for sync
-	rd.submit()
-	rd.sync()
+	_run_compute_pipeline(pipeline, uniform_set, ceil(particle_count/1024.0))
 
 #func _create_spatial_hash_pipeline() -> RID:
 	#
 	#return null
 
-func _run_compute_pipeline(pipeline: RID) -> void:
-	pass
+func _run_compute_pipeline(pipeline: RID, uniform_set: RID, thread_count: int) -> void:
+	var compute_list := rd.compute_list_begin()
+	rd.compute_list_bind_compute_pipeline(compute_list, pipeline)
+	rd.compute_list_bind_uniform_set(compute_list, uniform_set, 0)
+	rd.compute_list_dispatch(compute_list, thread_count, 1, 1)
+	rd.compute_list_end()
+	rd.submit()
+	rd.sync()
 
 func _process(delta: float) -> void:
 	fps_counter.text = str(int(Engine.get_frames_per_second())) + " fps"

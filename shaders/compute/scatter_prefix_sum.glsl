@@ -7,15 +7,27 @@ layout(set = 0, binding = 0, std430) restrict buffer Positions {
     vec2 positions[]; 
 };
 
-layout(set = 0, binding = 1, std430) restrict buffer Buckets {
-    uint buckets[]; // Maps particle index to bucket index. buckets[4] stores the bucket index that the particle with index 4 is in
+layout(set = 0, binding = 1, std430) restrict buffer BucketIndices {
+    uint bucket_indices[]; // Maps particle index to bucket index. buckets[4] stores the bucket index that the particle with index 4 is in
 };
 
 layout(set = 0, binding = 2, std430) restrict buffer BucketCounts {
     uint bucket_counts[];
 };
 
-layout(set = 0, binding = 3, std430) restrict buffer Params {
+layout(set = 0, binding = 3, std430) restrict buffer BucketPrefixSum {
+    uint bucket_prefix_sum[];
+};
+
+layout(set = 0, binding = 4, std430) restrict buffer BucketOffsets {
+    uint bucket_offsets[];
+};
+
+layout(set = 0, binding = 5, std430) restrict buffer SortedBuckets {
+    uint sorted_buckets[];
+};
+
+layout(set = 0, binding = 6, std430) restrict buffer Params {
 	uint particle_count;
     float screen_width;
     float screen_height;
@@ -34,26 +46,17 @@ layout(set = 0, binding = 3, std430) restrict buffer Params {
 }
 params;
 
-uint pos_to_bucket(vec2 pos) { // Returns the bucket index given the position of the particle
-    ivec2 grid_pos = ivec2(pos / params.smoothing_radius);
-    return grid_pos.y * params.grid_width + grid_pos.x; // Flattens grid into a one dimensional line
-}
-
 void main() {
 
-    int index = int(gl_GlobalInvocationID.x);
+    int particle_index = int(gl_GlobalInvocationID.x);
 
-
-    if (index < params.bucket_count) {
-        bucket_counts[index] = 0; // Reset bucket count if this is a valid bucket index
+    if (particle_index >= params.particle_count) { // Will be assigning values in sorted_buckets which has length particle_count, so only use indices less than particle_count
+        return;
     }
 
-    barrier(); // Barrier so that any value in bucket_counts is not changed until it has been reset
-
-
-    if (index < params.particle_count) {
-        atomicAdd(bucket_counts[pos_to_bucket(positions[index])], 1); // Increment bucket count for counting sort if this is a valid particle index
-    }
+    uint bucket = buckets[particle_index];
+    uint previous_bucket_index = atomicAdd(bucket_prefix_sum[bucket], 1);
+    sorted_buckets[previous_bucket_index] = particle_index;
 }
 
 /*  
@@ -62,7 +65,7 @@ vec2 positions[]
     maps particle index to position
 
 uint buckets[]
-    size = bucket_count
+    size = particle_count
     maps particle index to bucket index
 
 uint bucket_counts[]
@@ -80,7 +83,7 @@ uint output_array[]
     size = particle_count
     same as buckets but sorted. This means you can use offsets array (see below) to quickly find all particles in any given bucket given the bucket_id
     To get sorted array of buckets:
-    iterate backwards through bucket_prefix_sum[] (backwards keeps the sort stable)
+    iterate backwards through bucket_prefix_sum[] (backwards keeps the sort stable, but you cant parellelize easily like this)
     take the ith element and place i (the bucket index) in the bucket_prefix_sum[i]th place in the output array
     decrement bucket_prefix_sum[i]
 
