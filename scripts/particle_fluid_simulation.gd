@@ -1,6 +1,7 @@
 extends Node2D
 
-@export var particle_count: int = 1
+@export var particle_count: int = 10000
+@export var particle_size: float = 1.0/8
 @export var smoothing_radius: float = 50
 @export var particle_mass: float = 1
 @export var pressure_multiplier: float = 500
@@ -11,6 +12,7 @@ extends Node2D
 @export var steps_per_frame: int = 2
 
 
+
 var positions: PackedVector2Array = PackedVector2Array()
 var velocities: PackedVector2Array = PackedVector2Array()
 var densities: PackedFloat32Array = PackedFloat32Array()
@@ -19,47 +21,56 @@ var forces: PackedVector2Array = PackedVector2Array()
 
 var screen_width: float
 var screen_height: float
+var grid_width: int
+var grid_height: int
+var bucket_count: int
 
 @onready var fps_counter: Label = $FPSCounter
 @onready var gpu_particles_2d: GPUParticles2D = $GPUParticles2D
 var process_material: ShaderMaterial
 
 var particle_data_image: Image
-var particle_data_texture : ImageTexture
 var particle_data_texture_rd: Texture2DRD
 var particle_data_buffer : RID
 var image_size = int(ceil(sqrt(particle_count)))
 
 
 func _ready():
+
 	gpu_particles_2d.amount = particle_count
+	gpu_particles_2d.scale = Vector2(0.1, 0.1)
 	
 	screen_width = get_viewport_rect().size.x
 	screen_height = get_viewport_rect().size.y
 	
+	grid_width = int(ceil(screen_width / smoothing_radius))
+	grid_height = int(ceil(screen_height / smoothing_radius))
+	bucket_count = grid_width * grid_height
+	
 	particle_data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAH)
 	for i in range(particle_count):
-		#positions.append(randf() * screen_width
-		#positions.append(randf() * screen_height
-		positions.append(Vector2(0, 0))
-		velocities.append(Vector2(1, 1))
+		positions.append(Vector2(randf() * screen_width, randf() * screen_height))
+		velocities.append(Vector2(0, 0))
+		#velocities.append(Vector2(1, 1))
 		#positions.append(randf() * screen_width/4 + screen_width/2 - screen_width/8)
 		#positions.append(randf() * screen_height/4 + screen_height/2 - screen_height/8)
 		
 	process_material = gpu_particles_2d.process_material as ShaderMaterial
 	process_material.set_shader_parameter("particle_count", particle_count)
+	process_material.set_shader_parameter("particle_size", particle_size)
 	process_material.set_shader_parameter("image_size", image_size)
-	print(positions)
-	print(velocities)
 	
 	RenderingServer.call_on_render_thread(_setup_shaders)
 	
 	
-
 var rd: RenderingDevice
 
 var uniform_set: RID
 var pipeline: RID
+
+var pipeline1: RID # Updates spatial buckets. Positions
+var pipeline2: RID # Calculates densities and pressures. Positions, Densities, Pressures
+var pipeline3: RID # Calculates and applies forces. Positions, Velocities, Pressures, Spatial
 
 # Buffers
 var positions_buffer: RID
@@ -71,7 +82,6 @@ func _setup_shaders() -> void:
 	rd = RenderingServer.get_rendering_device()
 	
 	# --- Connect Compute Shader to Particle Shader ---
-	
 	var fmt := RDTextureFormat.new()
 	fmt.width = image_size
 	fmt.height = image_size
@@ -86,7 +96,7 @@ func _setup_shaders() -> void:
 	# --- === ---
 	
 	# Load GLSL shader
-	var shader_file := load("res://shaders/compute_shader.glsl")
+	var shader_file := load("res://shaders/compute/forces.glsl")
 	var shader_spirv: RDShaderSPIRV = shader_file.get_spirv()
 	var shader := rd.shader_create_from_spirv(shader_spirv)
 	
@@ -95,8 +105,6 @@ func _setup_shaders() -> void:
 	positions_buffer = rd.storage_buffer_create(positions_bytes.size(), positions_bytes)
 	var velocities_bytes := velocities.to_byte_array()
 	velocities_buffer = rd.storage_buffer_create(velocities_bytes.size(), velocities_bytes)
-	
-
 	
 	# Create Uniforms
 	var positions_uniform := _create_uniform(positions_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 0)
@@ -128,19 +136,22 @@ func _create_uniform(buffer: RID, uniform_type: RenderingDevice.UniformType, bin
 	
 func _create_params_uniform(binding: int) -> RDUniform:
 	var params_bytes := PackedByteArray()
-	params_bytes.resize(52)
+	params_bytes.resize(68)
 	params_bytes.encode_u32(0, particle_count)
 	params_bytes.encode_float(4, screen_width)
 	params_bytes.encode_float(8, screen_height)
 	params_bytes.encode_float(12, smoothing_radius)
-	params_bytes.encode_float(16, particle_mass)
-	params_bytes.encode_float(20, pressure_multiplier)
-	params_bytes.encode_float(24, target_density)
-	params_bytes.encode_float(28, gravity)
-	params_bytes.encode_float(32, elasticity)
-	params_bytes.encode_float(36, viscocity)
-	params_bytes.encode_u32(40, steps_per_frame)
-	params_bytes.encode_u32(44, image_size)
+	params_bytes.encode_u32(16, grid_width)
+	params_bytes.encode_u32(20, grid_height)
+	params_bytes.encode_u32(24, bucket_count)
+	params_bytes.encode_float(28, particle_mass)
+	params_bytes.encode_float(32, pressure_multiplier)
+	params_bytes.encode_float(36, target_density)
+	params_bytes.encode_float(40, gravity)
+	params_bytes.encode_float(44, elasticity)
+	params_bytes.encode_float(48, viscocity)
+	params_bytes.encode_u32(52, steps_per_frame)
+	params_bytes.encode_u32(56, image_size)
 
 	var params_buffer = rd.storage_buffer_create(params_bytes.size(), params_bytes)
 	return _create_uniform(params_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, binding)
@@ -156,6 +167,13 @@ func _simulation_step() -> void:
 	# Submit to GPU and wait for sync
 	rd.submit()
 	rd.sync()
+
+#func _create_spatial_hash_pipeline() -> RID:
+	#
+	#return null
+
+func _run_compute_pipeline(pipeline: RID) -> void:
+	pass
 
 func _process(delta: float) -> void:
 	fps_counter.text = str(int(Engine.get_frames_per_second())) + " fps"

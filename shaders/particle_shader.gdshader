@@ -2,10 +2,13 @@ shader_type particles;
 
 uniform sampler2D particle_data;
 uniform int particle_count;
+uniform float particle_size;
 uniform int image_size;
 
 void start() {
-
+	// Set particle size
+	TRANSFORM[0] = vec4(particle_size, 0, 0, 0);
+	TRANSFORM[1] = vec4(0, particle_size, 0, 0);
 }
 
 void process() {
@@ -17,6 +20,7 @@ void process() {
 
 	vec2 pos = data.xy;
 
+	// Set particle positions
 	TRANSFORM[3].xy = pos;
 	
 	COLOR = vec4(data.z*0.3, 1, 1, 1);

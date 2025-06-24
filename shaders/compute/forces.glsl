@@ -12,12 +12,15 @@ layout(set = 0, binding = 1, std430) restrict buffer Velocities {
     vec2 velocities[];
 };
 
-layout(set = 0, binding = 2, std430) restrict buffer Params {
+layout(set = 0, binding = 3, std430) restrict buffer Params {
 	uint particle_count;
     float screen_width;
     float screen_height;
     float smoothing_radius;
-    float particle_mass;
+    uint grid_width;
+    uint grid_height;
+    uint cell_count;
+    float particle_mass; 
     float pressure_multiplier;
     float target_density;
     float gravity;
@@ -27,13 +30,13 @@ layout(set = 0, binding = 2, std430) restrict buffer Params {
     uint image_size;
 }
 params;
-
-layout(binding = 3, rgba16f) uniform image2D particle_data;
+layout(binding = 3, rgba16f) restrict writeonly uniform image2D particle_data;
 
 // The code we want to execute in each invocation
 void main() {
 
     int index = int(gl_GlobalInvocationID.x);
+    barrier();
 
     if (index >= params.particle_count) {
         return;
