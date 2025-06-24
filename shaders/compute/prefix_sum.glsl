@@ -48,7 +48,7 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in; // Only one inv
 
 void main() { // Optimize this buy implementing a prefix sum algorithm that utilizes parallelization. (Blelloch Scan)
 
-    int particle_index = int(gl_GlobalInvocationID.x);
+    uint particle_index = gl_GlobalInvocationID.x;
 
     if (particle_index > 0) { // Only want to use one invocation
         return;
