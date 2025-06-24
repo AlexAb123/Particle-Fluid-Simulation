@@ -71,8 +71,6 @@ void main() {
         return;
     }
 
-    uint bucket_index = bucket_indices[particle_index]; // The bucket that this particle is contained in
-
     ivec2 grid_pos = pos_to_grid_pos(positions[particle_index]);
 
     for (int dx = -1; dx <= 1; dx++) {
