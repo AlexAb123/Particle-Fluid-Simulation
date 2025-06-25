@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Particle Fluid Simulation"
-run/main_scene="uid://qjeep82n4f7t"
+run/main_scene="uid://s2fqe0rvv4gm"
 config/features=PackedStringArray("4.4", "Forward Plus")
 boot_splash/show_image=false
 config/icon="res://icon.svg"

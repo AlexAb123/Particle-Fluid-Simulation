@@ -105,32 +105,55 @@ func _setup_shaders() -> void:
 	particle_data_texture_rd.texture_rd_rid = particle_data_buffer # Connect texture to buffer
 	process_material.set_shader_parameter("particle_data", particle_data_texture_rd) # Texture stored by reference, will be updated in the particle shader once the compute shader edits it
 	
+	# Load compute shaders
+	var clear_bucket_counts_shader := _create_compute_shader(load("res://shaders/compute/clear_bucket_counts.glsl"))
+	var count_buckets_shader := _create_compute_shader(load("res://shaders/compute/count_buckets.glsl"))
+	var prefix_sum_shader := _create_compute_shader(load("res://shaders/compute/prefix_sum.glsl"))
+	var scatter_shader := _create_compute_shader(load("res://shaders/compute/scatter.glsl"))
+	var densities_shader := _create_compute_shader(load("res://shaders/compute/densities.glsl"))
+	var forces_shader := _create_compute_shader(load("res://shaders/compute/forces.glsl"))
+	
 	# Initialize Pipelines
-	clear_bucket_counts_pipeline = _create_compute_pipeline(load("res://shaders/compute/clear_bucket_counts.glsl"))
-	count_buckets_pipeline = _create_compute_pipeline(load("res://shaders/compute/count_buckets.glsl"))
-	prefix_sum_pipeline = _create_compute_pipeline(load("res://shaders/compute/prefix_sum.glsl"))
-	scatter_pipeline = _create_compute_pipeline(load("res://shaders/compute/scatter.glsl"))
-	densities_pipeline = _create_compute_pipeline(load("res://shaders/compute/densities.glsl"))
-	forces_pipeline = _create_compute_pipeline(load("res://shaders/compute/forces.glsl"))
+	clear_bucket_counts_pipeline = rd.compute_pipeline_create(clear_bucket_counts_shader)
+	count_buckets_pipeline = rd.compute_pipeline_create(count_buckets_shader)
+	prefix_sum_pipeline = rd.compute_pipeline_create(prefix_sum_shader)
+	scatter_pipeline = rd.compute_pipeline_create(scatter_shader)
+	densities_pipeline = rd.compute_pipeline_create(densities_shader)
+	forces_pipeline = rd.compute_pipeline_create(forces_shader)
 	
+	# Create buffers - int/uint/float: 4 bytes. vec2: 8 bytes
+	bucket_indices_buffer = rd.storage_buffer_create(4 * particle_count)
+	bucket_counts_buffer = rd.storage_buffer_create(4 * bucket_count)
+	bucket_prefix_sum_buffer = rd.storage_buffer_create(4 * bucket_count)
+	bucket_offsets_buffer = rd.storage_buffer_create(4 * bucket_count)
+	particles_by_bucket_buffer = rd.storage_buffer_create(4 * particle_count)
 	
-	# Load GLSL shader
-	var shader_file := load("res://shaders/compute/forces.glsl")
-	var shader_spirv: RDShaderSPIRV = shader_file.get_spirv()
-	var shader := rd.shader_create_from_spirv(shader_spirv)
-	
-	# Create buffers
 	var positions_bytes := positions.to_byte_array()
 	positions_buffer = rd.storage_buffer_create(positions_bytes.size(), positions_bytes)
 	var velocities_bytes := velocities.to_byte_array()
 	velocities_buffer = rd.storage_buffer_create(velocities_bytes.size(), velocities_bytes)
+	densities_buffer = rd.storage_buffer_create(4 * particle_count)
+	pressures_buffer = rd.storage_buffer_create(4 * particle_count)
+	forces_buffer = rd.storage_buffer_create(8 * particle_count)
 	
-	# Create Uniforms
+	# Create uniforms
+	var params_uniform := _create_params_uniform(0)
+	
+	var bucket_indices_uniform := _create_uniform(bucket_indices_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
+	var bucket_counts_uniform := _create_uniform(bucket_counts_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
+	var bucket_prefix_sum_uniform := _create_uniform(bucket_prefix_sum_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
+	var bucket_offsets_uniform := _create_uniform(bucket_offsets_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
+	var particles_by_bucket_uniform := _create_uniform(particles_by_bucket_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
+	
 	var positions_uniform := _create_uniform(positions_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 0)
 	var velocities_uniform := _create_uniform(velocities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
-	var params_uniform := _create_params_uniform(2)
-	var particle_data_uniform = _create_uniform(particle_data_buffer, RenderingDevice.UNIFORM_TYPE_IMAGE, 3)
+	var densities_uniform := _create_uniform(densities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
+	var pressures_uniform := _create_uniform(pressures_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
+	var forces_uniform := _create_uniform(forces_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
+
+	var particle_data_uniform := _create_uniform(particle_data_buffer, RenderingDevice.UNIFORM_TYPE_IMAGE, 3)
 	
+	# Create uniform sets
 	uniform_set = rd.uniform_set_create(
 		[positions_uniform, 
 		velocities_uniform,
@@ -173,11 +196,10 @@ func _create_params_uniform(binding: int) -> RDUniform:
 	
 func _simulation_step() -> void:
 	_run_compute_pipeline(pipeline, uniform_set, ceil(particle_count/1024.0))
-
-func _create_compute_pipeline(shader_file: Resource) -> RID:
+	
+func _create_compute_shader(shader_file: Resource) -> RID:
 	var shader_spirv: RDShaderSPIRV = shader_file.get_spirv()
-	var shader := rd.shader_create_from_spirv(shader_spirv)
-	return rd.compute_pipeline_create(shader)
+	return rd.shader_create_from_spirv(shader_spirv)
 
 func _run_compute_pipeline(pipeline: RID, uniform_set: RID, thread_count: int) -> void:
 	var compute_list := rd.compute_list_begin()

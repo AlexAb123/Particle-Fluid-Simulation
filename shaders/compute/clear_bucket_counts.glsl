@@ -60,7 +60,7 @@ vec2 positions[]
     size = particle_count
     maps particle index to position
 
-uint buckets[]
+uint bucket_indices[]
     size = particle_count
     maps particle index to bucket index
 
@@ -77,7 +77,7 @@ uint bucket_prefix_sum[]
 
 uint output_array[]
     size = particle_count
-    same as buckets but sorted. This means you can use offsets array (see below) to quickly find all particles in any given bucket given the bucket_id
+    stores particle indices sorted by their bucket. This means you can use offsets array (see below) to quickly find all particles in any given bucket given the bucket_id
     To get sorted array of buckets:
     iterate backwards through bucket_prefix_sum[] (backwards keeps the sort stable)
     take the ith element and place i (the bucket index) in the bucket_prefix_sum[i]th place in the output array
