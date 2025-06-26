@@ -23,11 +23,6 @@ void process() {
 
 	// Set particle positions
 	TRANSFORM[3].xy = pos;
-	COLOR = vec4(clamp(data.z/250.0, 0.0, 1.0), 0, 0, 1); // Red intensity shows velocity magnitude
-	COLOR = vec4(texture(gradient_texture, vec2(clamp(data.z/250.0, 0.0, 1.0), 0.5)).rgb, 1);
-	COLOR = texture(gradient_texture, vec2(1, 0.5));
-// Show the full gradient as a test pattern:
-float t = float(int(INDEX) % 100) / 99.0; // Creates 0.0 to 1.0 across particles
-COLOR = texture(gradient_texture, vec2(t, 0.5));
+	COLOR = texelFetch(gradient_texture, ivec2(clamp(int(data.z)/3, 0, 90), 0), 0);
 
 }

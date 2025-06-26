@@ -41,9 +41,7 @@ void main() {
     if (particle_index >= params.particle_count) { // Will be assigning values in particles_by_bucket which has length particle_count, so only use indices less than particle_count
         return;
     }
-    if (particle_index >= params.particle_count) {
-        return;
-    }
+
     uint bucket = bucket_indices[particle_index];
     uint previous_bucket_index = atomicAdd(bucket_prefix_sum[bucket], 1);
     particles_by_bucket[previous_bucket_index] = particle_index;

@@ -13,13 +13,13 @@ shader_parameter/image_size = 0
 
 [node name="ParticleFluidSimulation" type="Node2D"]
 script = ExtResource("1_86u53")
-particle_count = 100000
 particle_mass = 50.0
-target_density = 0.8
-gravity = 150.0
+pressure_multiplier = 50000.0
+gravity = 0.0
 gradient = ExtResource("2_f3dii")
 
 [node name="GPUParticles2D" type="GPUParticles2D" parent="."]
+amount = 2000
 texture = ExtResource("2_wti10")
 fixed_fps = 120
 process_material = SubResource("ShaderMaterial_wti10")

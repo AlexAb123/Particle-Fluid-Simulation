@@ -1,6 +1,6 @@
 extends Node2D
 
-@export var particle_count: int = 1000
+@export var particle_count: int = 1024
 @export var particle_size: float = 1.0/4
 @export var smoothing_radius: float = 50
 @export var particle_mass: float = 25
@@ -31,10 +31,11 @@ var process_material: ShaderMaterial
 var particle_data_image: Image
 var particle_data_texture_rd: Texture2DRD
 var particle_data_buffer : RID
-var image_size = int(ceil(sqrt(particle_count)))
+var image_size: int
 
 func _ready():
 	
+	image_size = int(ceil(sqrt(particle_count)))
 	gpu_particles_2d.amount = particle_count
 	gpu_particles_2d.scale = Vector2(0.1, 0.1)
 	
@@ -44,8 +45,6 @@ func _ready():
 	grid_width = int(ceil(screen_width / smoothing_radius))
 	grid_height = int(ceil(screen_height / smoothing_radius))
 	bucket_count = grid_width * grid_height
-	
-	print(bucket_count)
 	
 	particle_data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAH)
 	
@@ -115,7 +114,10 @@ func _setup_shaders() -> void:
 	particle_data_texture_rd = Texture2DRD.new()
 	particle_data_texture_rd.texture_rd_rid = particle_data_buffer # Connect texture to buffer
 	process_material.set_shader_parameter("particle_data", particle_data_texture_rd) # Texture stored by reference, will be updated in the particle shader once the compute shader edits it
-	
+	# Debug the texture size:
+	print("Image size: ", image_size)
+	print("Can hold particles: ", image_size * image_size)
+	print("Actual particle count: ", particle_count)
 	# Load compute shaders
 	var clear_bucket_counts_shader := _create_compute_shader(load("res://shaders/compute/clear_bucket_counts.glsl"))
 	var count_buckets_shader := _create_compute_shader(load("res://shaders/compute/count_buckets.glsl"))
@@ -247,41 +249,6 @@ func _simulation_step(delta: float) -> void:
 	_run_compute_pipeline(densities_pipeline, densities_uniform_set, ceil(particle_count/1024.0))
 	_run_compute_pipeline_delta(forces_pipeline, forces_uniform_set, ceil(particle_count/1024.0), delta)
 	
-	var output_bytes := rd.buffer_get_data(densities_buffer)
-	var output := Array(output_bytes.to_float32_array())
-	print("density: ", output.max())
-	output_bytes = rd.buffer_get_data(positions_buffer)
-	output = Array(output_bytes.to_float32_array())
-	print("pos: ", output.max())
-	output_bytes = rd.buffer_get_data(velocities_buffer)
-	output = Array(output_bytes.to_float32_array())
-	print("vel: ",  output.max())
-	output_bytes = rd.buffer_get_data(pressures_buffer)
-	output = Array(output_bytes.to_float32_array())
-	print("pressure: ",  output.max())
-	
-	print("-------------------------------------------")
-	# For debugging counting sort
-	#var output_bytes := rd.buffer_get_data(bucket_indices_buffer)
-	#var output := output_bytes.to_int32_array()
-	#print("Bucket indices: ", output)
-	#
-	#output_bytes = rd.buffer_get_data(bucket_counts_buffer)
-	#output = output_bytes.to_int32_array()
-	#print("Bucket counts: ", output)
-	#
-	#output_bytes = rd.buffer_get_data(bucket_prefix_sum_buffer)
-	#output = output_bytes.to_int32_array()
-	#print("Prefix sum: ", output)
-	#
-	#output_bytes = rd.buffer_get_data(bucket_offsets_buffer)
-	#output = output_bytes.to_int32_array()
-	#print("Bucket offsets: ", output)
-	#
-	#output_bytes = rd.buffer_get_data(particles_by_bucket_buffer)
-	#output = output_bytes.to_int32_array()
-	#print("Particles by bucket: ", output)
-	
 func _create_compute_shader(shader_file: Resource) -> RID:
 	var shader_spirv: RDShaderSPIRV = shader_file.get_spirv()
 	return rd.shader_create_from_spirv(shader_spirv)
@@ -313,11 +280,6 @@ func _run_compute_pipeline_delta(pipeline: RID, uniform_set: RID, thread_count: 
 
 func _process(delta: float) -> void:
 	fps_counter.text = str(int(Engine.get_frames_per_second())) + " fps"
-	print("Particle count: ", particle_count)
-	print("Bucket count: ", bucket_count) 
-	print("Grid dimensions: ", grid_width, "x", grid_height)
-	print("Count buckets dispatch: ", ceil(bucket_count/1024.0))
-	print("Scatter dispatch: ", ceil(particle_count/1024.0))
 	for i in range(steps_per_frame):
 		_simulation_step(delta)
 		
