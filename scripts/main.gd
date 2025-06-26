@@ -8,7 +8,7 @@ extends Node2D
 @export var gravity: float = 0
 @export_range(0, 1) var elasticity: float = 0.95
 @export var viscocity: float = 50
-@export var steps_per_frame: int = 2
+@export var steps_per_frame: int = 1
 
 @export var gradient: Gradient
 

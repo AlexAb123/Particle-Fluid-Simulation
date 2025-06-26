@@ -56,6 +56,7 @@ float density_to_pressure(float density) {
 }
 
 const float PI = 3.14159265359;
+
 float density_kernel(float dst) {
 	if (dst >= params.smoothing_radius) {
 		return 0;
@@ -73,8 +74,8 @@ void main() {
         return;
     }
 
-    float density = 0.0;
     vec2 pos = positions[particle_index];
+    float density = 0.0;
 
     ivec2 grid_pos = pos_to_grid_pos(positions[particle_index]);
 
@@ -99,13 +100,15 @@ void main() {
 
                 // Density calulations
                 float dst = distance(pos, positions[neighbour_index]);
+                if (dst > params.smoothing_radius) {
+                    continue;
+                }
                 float influence = density_kernel(dst);
                 density += influence * params.particle_mass;
 
             }
         }
     }
-
     densities[particle_index] = density;
     pressures[particle_index] = density_to_pressure(density);
 }

@@ -23,8 +23,6 @@ gdscript/warnings/integer_division=0
 
 [display]
 
-window/size/viewport_width=100
-window/size/viewport_height=100
 window/vsync/vsync_mode=0
 
 [input]

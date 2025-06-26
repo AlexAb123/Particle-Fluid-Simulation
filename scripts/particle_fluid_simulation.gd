@@ -1,15 +1,15 @@
 extends Node2D
 
-@export var particle_count: int = 3
+@export var particle_count: int = 2048
 @export var particle_size: float = 1.0/8
 @export var smoothing_radius: float = 50
-@export var particle_mass: float = 1
-@export var pressure_multiplier: float = 500
-@export var target_density: float = 3
-@export var gravity: float = 0
+@export var particle_mass: float = 25
+@export var pressure_multiplier: float = 50000
+@export var target_density: float = 0.2
+@export var gravity: float = 50
 @export_range(0, 1) var elasticity: float = 0.95
-@export var viscocity: float = 50
-@export var steps_per_frame: int = 2
+@export var viscocity: float = 100
+@export var steps_per_frame: int = 1
 
 var positions: PackedVector2Array = PackedVector2Array()
 var velocities: PackedVector2Array = PackedVector2Array()
@@ -46,12 +46,12 @@ func _ready():
 	bucket_count = grid_width * grid_height
 	
 	particle_data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAH)
+	
 	for i in range(particle_count):
-		positions.append(Vector2(randf() * screen_width, randf() * screen_height))
+		#positions.append(Vector2(randf() * screen_width, randf() * screen_height))
+		positions.append(Vector2(randf() * screen_width/4 + screen_width/2 - screen_width/8, randf() * screen_height/4 + screen_height/2 - screen_height/8))
+		#positions.append(Vector2.ZERO)
 		velocities.append(Vector2(0, 0))
-		#velocities.append(Vector2(1, 1))
-		#positions.append(randf() * screen_width/4 + screen_width/2 - screen_width/8)
-		#positions.append(randf() * screen_height/4 + screen_height/2 - screen_height/8)
 	
 	# Particle shader setup
 	process_material = gpu_particles_2d.process_material as ShaderMaterial
@@ -60,8 +60,6 @@ func _ready():
 	process_material.set_shader_parameter("image_size", image_size)
 	
 	RenderingServer.call_on_render_thread(_setup_shaders)
-	
-	_simulation_step()
 	
 var rd: RenderingDevice
 
@@ -233,14 +231,17 @@ func _create_params_uniform(binding: int) -> RDUniform:
 	var params_buffer = rd.storage_buffer_create(params_bytes.size(), params_bytes)
 	return _create_uniform(params_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, binding)
 	
-func _simulation_step() -> void:
-	print(positions)
+func _simulation_step(delta: float) -> void:
 	_run_compute_pipeline(clear_bucket_counts_pipeline, clear_bucket_counts_uniform_set, ceil(bucket_count/1024.0))
 	_run_compute_pipeline(count_buckets_pipeline, count_buckets_uniform_set, ceil(bucket_count/1024.0))
 	_run_compute_pipeline(prefix_sum_pipeline, prefix_sum_uniform_set, 1)
 	_run_compute_pipeline(scatter_pipeline, scatter_uniform_set, ceil(particle_count/1024.0))
 	_run_compute_pipeline(densities_pipeline, densities_uniform_set, ceil(particle_count/1024.0))
-	_run_compute_pipeline(forces_pipeline, forces_uniform_set, ceil(particle_count/1024.0))
+	_run_compute_pipeline_delta(forces_pipeline, forces_uniform_set, ceil(particle_count/1024.0), delta)
+	
+	#var output_bytes := rd.buffer_get_data(positions_buffer)
+	#var output := output_bytes.to_float32_array()
+	#print("Positions: ", output)
 	
 	# For debugging counting sort
 	#var output_bytes := rd.buffer_get_data(bucket_indices_buffer)
@@ -274,6 +275,25 @@ func _run_compute_pipeline(pipeline: RID, uniform_set: RID, thread_count: int) -
 	rd.compute_list_dispatch(compute_list, thread_count, 1, 1)
 	rd.compute_list_end()
 	# Don't need rd.submit() or rd.sync(). It only applies for local rendering devices (we are using the global one)
+
+func _run_compute_pipeline_delta(pipeline: RID, uniform_set: RID, thread_count: int, delta: float) -> void:
+	var push_constant_bytes := PackedByteArray()
+	push_constant_bytes.resize(16)  # Make it 16 bytes instead of 4
+	push_constant_bytes.encode_float(0, delta)
+	# Fill the rest with zeros for padding
+	push_constant_bytes.encode_float(4, 0.0)
+	push_constant_bytes.encode_float(8, 0.0)
+	push_constant_bytes.encode_float(12, 0.0)
+	
+	var compute_list := rd.compute_list_begin()
+	rd.compute_list_bind_compute_pipeline(compute_list, pipeline)
+	rd.compute_list_bind_uniform_set(compute_list, uniform_set, 0)
+	rd.compute_list_set_push_constant(compute_list, push_constant_bytes, push_constant_bytes.size())
+	rd.compute_list_dispatch(compute_list, thread_count, 1, 1)
+	rd.compute_list_end()
+	# Don't need rd.submit() or rd.sync(). It only applies for local rendering devices (we are using the global one)
+
 func _process(delta: float) -> void:
 	fps_counter.text = str(int(Engine.get_frames_per_second())) + " fps"
-	#_simulation_step()
+	for i in range(steps_per_frame):
+		_simulation_step(delta)
