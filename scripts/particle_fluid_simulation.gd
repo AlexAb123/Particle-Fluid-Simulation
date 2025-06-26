@@ -1,6 +1,6 @@
 extends Node2D
 
-@export var particle_count: int = 10000
+@export var particle_count: int = 3
 @export var particle_size: float = 1.0/8
 @export var smoothing_radius: float = 50
 @export var particle_mass: float = 1
@@ -10,8 +10,6 @@ extends Node2D
 @export_range(0, 1) var elasticity: float = 0.95
 @export var viscocity: float = 50
 @export var steps_per_frame: int = 2
-
-
 
 var positions: PackedVector2Array = PackedVector2Array()
 var velocities: PackedVector2Array = PackedVector2Array()
@@ -36,7 +34,7 @@ var image_size = int(ceil(sqrt(particle_count)))
 
 
 func _ready():
-
+	
 	gpu_particles_2d.amount = particle_count
 	gpu_particles_2d.scale = Vector2(0.1, 0.1)
 	
@@ -54,7 +52,8 @@ func _ready():
 		#velocities.append(Vector2(1, 1))
 		#positions.append(randf() * screen_width/4 + screen_width/2 - screen_width/8)
 		#positions.append(randf() * screen_height/4 + screen_height/2 - screen_height/8)
-		
+	
+	# Particle shader setup
 	process_material = gpu_particles_2d.process_material as ShaderMaterial
 	process_material.set_shader_parameter("particle_count", particle_count)
 	process_material.set_shader_parameter("particle_size", particle_size)
@@ -62,14 +61,12 @@ func _ready():
 	
 	RenderingServer.call_on_render_thread(_setup_shaders)
 	
+	_simulation_step()
 	
 var rd: RenderingDevice
 
-var uniform_set: RID
-var pipeline: RID
-
-# Compute Shader Pipelines
-var clear_bucket_counts_pipeline
+# Compute shader pipelines
+var clear_bucket_counts_pipeline: RID # Clears bucket counts. Needs bucket_count invocations.
 var count_buckets_pipeline: RID # Counts buckets for bucket sort. Needs bucket_count invocations.
 var prefix_sum_pipeline: RID # Runs a prefix sum on bucket_counts and generates bucket_offsets for quick neighbour search. Needs 1 invocation (because it does not yet use a parallel prefix sum algorithm).
 var scatter_pipeline: RID # Scatters the prefix sum to create particles_by_bucket which is used alongside bucket_offsets for quick neighbour search. Needs particle_count invocations.
@@ -87,6 +84,14 @@ var velocities_buffer: RID
 var densities_buffer: RID
 var pressures_buffer: RID
 var forces_buffer: RID
+
+# Uniform sets
+var clear_bucket_counts_uniform_set: RID
+var count_buckets_uniform_set: RID
+var prefix_sum_uniform_set: RID
+var scatter_uniform_set: RID
+var densities_uniform_set: RID
+var forces_uniform_set: RID
 
 func _setup_shaders() -> void:
 	
@@ -134,37 +139,71 @@ func _setup_shaders() -> void:
 	velocities_buffer = rd.storage_buffer_create(velocities_bytes.size(), velocities_bytes)
 	densities_buffer = rd.storage_buffer_create(4 * particle_count)
 	pressures_buffer = rd.storage_buffer_create(4 * particle_count)
-	forces_buffer = rd.storage_buffer_create(8 * particle_count)
 	
 	# Create uniforms
 	var params_uniform := _create_params_uniform(0)
 	
 	var bucket_indices_uniform := _create_uniform(bucket_indices_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
-	var bucket_counts_uniform := _create_uniform(bucket_counts_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
-	var bucket_prefix_sum_uniform := _create_uniform(bucket_prefix_sum_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
-	var bucket_offsets_uniform := _create_uniform(bucket_offsets_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
-	var particles_by_bucket_uniform := _create_uniform(particles_by_bucket_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
+	var bucket_counts_uniform := _create_uniform(bucket_counts_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 2)
+	var bucket_prefix_sum_uniform := _create_uniform(bucket_prefix_sum_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 3)
+	var bucket_offsets_uniform := _create_uniform(bucket_offsets_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 4)
+	var particles_by_bucket_uniform := _create_uniform(particles_by_bucket_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 5)
 	
-	var positions_uniform := _create_uniform(positions_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 0)
-	var velocities_uniform := _create_uniform(velocities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
-	var densities_uniform := _create_uniform(densities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
-	var pressures_uniform := _create_uniform(pressures_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
-	var forces_uniform := _create_uniform(forces_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
-
-	var particle_data_uniform := _create_uniform(particle_data_buffer, RenderingDevice.UNIFORM_TYPE_IMAGE, 3)
+	var positions_uniform := _create_uniform(positions_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 6)
+	var densities_uniform := _create_uniform(densities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 7)
+	var pressures_uniform := _create_uniform(pressures_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 8)
+	var velocities_uniform := _create_uniform(velocities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 9)
+	
+	var particle_data_uniform := _create_uniform(particle_data_buffer, RenderingDevice.UNIFORM_TYPE_IMAGE, 10)
 	
 	# Create uniform sets
-	uniform_set = rd.uniform_set_create(
-		[positions_uniform, 
-		velocities_uniform,
-		params_uniform,
-		particle_data_uniform],
-		shader, 
+	clear_bucket_counts_uniform_set = rd.uniform_set_create(
+		[params_uniform,
+		bucket_counts_uniform],
+		clear_bucket_counts_shader,
 		0) # the last parameter (the 0) needs to match the "set" in our shader file
+	count_buckets_uniform_set = rd.uniform_set_create(
+		[params_uniform,
+	 	bucket_indices_uniform,
+		bucket_counts_uniform,
+		positions_uniform],
+		count_buckets_shader,
+		0)
+	prefix_sum_uniform_set = rd.uniform_set_create(
+		[params_uniform, 
+		bucket_counts_uniform,
+		bucket_prefix_sum_uniform,
+		bucket_offsets_uniform],
+		prefix_sum_shader,
+		0)
+	scatter_uniform_set = rd.uniform_set_create(
+		[params_uniform, 
+		bucket_indices_uniform,
+		bucket_prefix_sum_uniform,
+		particles_by_bucket_uniform],
+		scatter_shader,
+		0)
+	densities_uniform_set = rd.uniform_set_create(
+		[params_uniform, 
+		bucket_offsets_uniform,
+		particles_by_bucket_uniform,
+		positions_uniform,
+		densities_uniform,
+		pressures_uniform],
+		densities_shader,
+		0)
+	forces_uniform_set = rd.uniform_set_create(
+		[params_uniform, 
+		bucket_offsets_uniform,
+		particles_by_bucket_uniform,
+		positions_uniform,
+		densities_uniform,
+		pressures_uniform,
+		velocities_uniform,
+		particle_data_uniform],
+		forces_shader,
+		0)
 		
-	pipeline = rd.compute_pipeline_create(shader)
-	
-
 func _create_uniform(buffer: RID, uniform_type: RenderingDevice.UniformType, binding: int) -> RDUniform:
 	var uniform := RDUniform.new()
 	uniform.uniform_type = uniform_type
@@ -195,7 +234,34 @@ func _create_params_uniform(binding: int) -> RDUniform:
 	return _create_uniform(params_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, binding)
 	
 func _simulation_step() -> void:
-	_run_compute_pipeline(pipeline, uniform_set, ceil(particle_count/1024.0))
+	print(positions)
+	_run_compute_pipeline(clear_bucket_counts_pipeline, clear_bucket_counts_uniform_set, ceil(bucket_count/1024.0))
+	_run_compute_pipeline(count_buckets_pipeline, count_buckets_uniform_set, ceil(bucket_count/1024.0))
+	_run_compute_pipeline(prefix_sum_pipeline, prefix_sum_uniform_set, 1)
+	_run_compute_pipeline(scatter_pipeline, scatter_uniform_set, ceil(particle_count/1024.0))
+	#_run_compute_pipeline(densities_pipeline, densities_uniform_set, ceil(particle_count/1024.0))
+	#_run_compute_pipeline(forces_pipeline, forces_uniform_set, ceil(particle_count/1024.0))
+	
+	# For debugging counting sort
+	#var output_bytes := rd.buffer_get_data(bucket_indices_buffer)
+	#var output := output_bytes.to_int32_array()
+	#print("Bucket indices: ", output)
+	#
+	#output_bytes = rd.buffer_get_data(bucket_counts_buffer)
+	#output = output_bytes.to_int32_array()
+	#print("Bucket counts: ", output)
+	#
+	#output_bytes = rd.buffer_get_data(bucket_prefix_sum_buffer)
+	#output = output_bytes.to_int32_array()
+	#print("Prefix sum: ", output)
+	#
+	#output_bytes = rd.buffer_get_data(bucket_offsets_buffer)
+	#output = output_bytes.to_int32_array()
+	#print("Bucket offsets: ", output)
+	#
+	#output_bytes = rd.buffer_get_data(particles_by_bucket_buffer)
+	#output = output_bytes.to_int32_array()
+	#print("Particles by bucket: ", output)
 	
 func _create_compute_shader(shader_file: Resource) -> RID:
 	var shader_spirv: RDShaderSPIRV = shader_file.get_spirv()
@@ -207,9 +273,7 @@ func _run_compute_pipeline(pipeline: RID, uniform_set: RID, thread_count: int) -
 	rd.compute_list_bind_uniform_set(compute_list, uniform_set, 0)
 	rd.compute_list_dispatch(compute_list, thread_count, 1, 1)
 	rd.compute_list_end()
-	rd.submit()
-	rd.sync()
-
+	# Don't need rd.submit() or rd.sync(). It only applies for local rendering devices (we are using the global one)
 func _process(delta: float) -> void:
 	fps_counter.text = str(int(Engine.get_frames_per_second())) + " fps"
-	_simulation_step()
+	#_simulation_step()

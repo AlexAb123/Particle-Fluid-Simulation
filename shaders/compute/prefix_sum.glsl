@@ -1,31 +1,9 @@
 #[compute]
 #version 450
 
-layout(set = 0, binding = 0, std430) restrict buffer Positions {
-    vec2 positions[]; 
-};
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in; // Only one invocation per workgroup until a parallel prefix sum algorithm is implemented. Dispatch should use only one thread as well
 
-layout(set = 0, binding = 1, std430) restrict buffer BucketIndices {
-    uint bucket_indices[]; // Maps particle index to bucket index. buckets[4] stores the bucket index that the particle with index 4 is in
-};
-
-layout(set = 0, binding = 2, std430) restrict buffer BucketCounts {
-    uint bucket_counts[];
-};
-
-layout(set = 0, binding = 3, std430) restrict buffer BucketPrefixSum {
-    uint bucket_prefix_sum[];
-};
-
-layout(set = 0, binding = 4, std430) restrict buffer BucketOffsets {
-    uint bucket_offsets[]; // Maps bucket index to the index in the particles_by_bucket array in which the particles contained in that bucket begin to be listed in the particles_by_bucket array
-};
-
-layout(set = 0, binding = 5, std430) restrict buffer ParticlesByBucket {
-    uint particles_by_bucket[]; // Stores particle indices sorted by their bucket indices
-};
-
-layout(set = 0, binding = 6, std430) restrict buffer Params {
+layout(set = 0, binding = 0, std430) restrict buffer Params {
 	uint particle_count;
     float screen_width;
     float screen_height;
@@ -44,7 +22,17 @@ layout(set = 0, binding = 6, std430) restrict buffer Params {
 }
 params;
 
-layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in; // Only one invocation per workgroup until a parallel prefix sum algorithm is implemented. Dispatch should use only one thread as well
+layout(set = 0, binding = 2, std430) restrict buffer BucketCounts {
+    uint bucket_counts[];
+};
+
+layout(set = 0, binding = 3, std430) restrict buffer BucketPrefixSum {
+    uint bucket_prefix_sum[];
+};
+
+layout(set = 0, binding = 4, std430) restrict buffer BucketOffsets {
+    uint bucket_offsets[]; // Maps bucket index to the index in the particles_by_bucket array in which the particles contained in that bucket begin to be listed in the particles_by_bucket array
+};
 
 void main() { // Optimize this buy implementing a prefix sum algorithm that utilizes parallelization. (Blelloch Scan)
 
