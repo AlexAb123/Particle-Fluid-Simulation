@@ -1,16 +1,16 @@
 extends Node2D
 
-@export var particle_count: int = 5000
-@export var particle_size: float = 1.0/16
+@export var particle_count: int = 1000
+@export var particle_size: float = 1.0/4
 @export var smoothing_radius: float = 50
 @export var particle_mass: float = 25
-@export var pressure_multiplier: float = 50000
+@export var pressure_multiplier: float = 100000
 @export var target_density: float = 0.2
-@export var gravity: float = 50
+@export var gravity: float = 200
 @export_range(0, 1) var elasticity: float = 0.95
-@export var viscocity: float = 100
+@export var viscocity: float = 200
 @export var steps_per_frame: int = 1
-@export var gradient: Gradient;
+@export var gradient: Gradient
 
 var positions: PackedVector2Array = PackedVector2Array()
 var velocities: PackedVector2Array = PackedVector2Array()
@@ -61,8 +61,8 @@ func _ready():
 	process_material.set_shader_parameter("particle_size", particle_size)
 	process_material.set_shader_parameter("image_size", image_size)
 	var gradient_texture: GradientTexture1D = GradientTexture1D.new()
-	gradient_texture.set_gradient(gradient)
-	gradient_texture.set_width(100)
+	gradient_texture.gradient = gradient
+	gradient_texture.width = 100
 	process_material.set_shader_parameter("gradient_texture", gradient_texture)
 	
 	RenderingServer.call_on_render_thread(_setup_shaders)

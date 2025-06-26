@@ -5,3 +5,4 @@ res://scripts/particle_fluid_simulation.gd
 res://scenes/main.tscn
 res://scenes/old_main.tscn
 res://assets/gradient.tres
+res://scripts/main.gd

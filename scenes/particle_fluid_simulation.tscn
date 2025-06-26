@@ -15,11 +15,11 @@ shader_parameter/image_size = 0
 script = ExtResource("1_86u53")
 particle_mass = 50.0
 target_density = 1.6
-gravity = 150.0
 gradient = ExtResource("2_f3dii")
 
 [node name="GPUParticles2D" type="GPUParticles2D" parent="."]
 texture = ExtResource("2_wti10")
+fixed_fps = 120
 process_material = SubResource("ShaderMaterial_wti10")
 
 [node name="FPSCounter" type="Label" parent="."]

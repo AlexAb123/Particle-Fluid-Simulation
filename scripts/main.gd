@@ -4,7 +4,7 @@ extends Node2D
 @export var smoothing_radius: int = 50
 @export var particle_mass: float = 1
 @export var pressure_multiplier: float = 500
-@export var target_density: float = 3
+@export var target_density: float = 0.2
 @export var gravity: float = 0
 @export_range(0, 1) var elasticity: float = 0.95
 @export var viscocity: float = 50
