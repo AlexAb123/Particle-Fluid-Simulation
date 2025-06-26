@@ -3,3 +3,5 @@ res://shaders/particle_shader.gdshader
 res://shaders/old_particle.gdshader
 res://scripts/particle_fluid_simulation.gd
 res://scenes/main.tscn
+res://scenes/old_main.tscn
+res://assets/gradient.tres

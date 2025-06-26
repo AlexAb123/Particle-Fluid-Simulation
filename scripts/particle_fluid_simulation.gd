@@ -1,7 +1,7 @@
 extends Node2D
 
-@export var particle_count: int = 2048
-@export var particle_size: float = 1.0/8
+@export var particle_count: int = 5000
+@export var particle_size: float = 1.0/16
 @export var smoothing_radius: float = 50
 @export var particle_mass: float = 25
 @export var pressure_multiplier: float = 50000
@@ -10,6 +10,7 @@ extends Node2D
 @export_range(0, 1) var elasticity: float = 0.95
 @export var viscocity: float = 100
 @export var steps_per_frame: int = 1
+@export var gradient: Gradient;
 
 var positions: PackedVector2Array = PackedVector2Array()
 var velocities: PackedVector2Array = PackedVector2Array()
@@ -54,12 +55,18 @@ func _ready():
 		velocities.append(Vector2(0, 0))
 	
 	# Particle shader setup
+
 	process_material = gpu_particles_2d.process_material as ShaderMaterial
 	process_material.set_shader_parameter("particle_count", particle_count)
 	process_material.set_shader_parameter("particle_size", particle_size)
 	process_material.set_shader_parameter("image_size", image_size)
+	var gradient_texture: GradientTexture1D = GradientTexture1D.new()
+	gradient_texture.set_gradient(gradient)
+	gradient_texture.set_width(100)
+	process_material.set_shader_parameter("gradient_texture", gradient_texture)
 	
 	RenderingServer.call_on_render_thread(_setup_shaders)
+	
 	
 var rd: RenderingDevice
 
@@ -239,9 +246,7 @@ func _simulation_step(delta: float) -> void:
 	_run_compute_pipeline(densities_pipeline, densities_uniform_set, ceil(particle_count/1024.0))
 	_run_compute_pipeline_delta(forces_pipeline, forces_uniform_set, ceil(particle_count/1024.0), delta)
 	
-	#var output_bytes := rd.buffer_get_data(positions_buffer)
-	#var output := output_bytes.to_float32_array()
-	#print("Positions: ", output)
+
 	
 	# For debugging counting sort
 	#var output_bytes := rd.buffer_get_data(bucket_indices_buffer)

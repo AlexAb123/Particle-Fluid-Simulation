@@ -182,9 +182,6 @@ void main() {
     );
     imageStore(particle_data, pixel_coord, particle_info);
 
-
-
-
 /*     uint particle_index = gl_GlobalInvocationID.x;
 
     if (particle_index >= params.particle_count) {

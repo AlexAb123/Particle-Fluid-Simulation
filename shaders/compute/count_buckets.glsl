@@ -34,7 +34,6 @@ layout(set = 0, binding = 6, std430) restrict buffer Positions {
     vec2 positions[]; 
 };
 
-
 uint pos_to_bucket_index(vec2 pos) { // Returns the bucket index given the position of the particle
     ivec2 grid_pos = ivec2(pos / params.smoothing_radius);
     return grid_pos.y * params.grid_width + grid_pos.x; // Flattens grid into a one dimensional line
@@ -44,11 +43,13 @@ void main() {
 
     uint particle_index = gl_GlobalInvocationID.x;
 
-    if (particle_index < params.particle_count) {
-        uint bucket_index = pos_to_bucket_index(positions[particle_index]);
-        bucket_indices[particle_index] = bucket_index;
-        atomicAdd(bucket_counts[bucket_index], 1); // Increment bucket count for counting sort if this is a valid particle index
+    if (particle_index >= params.particle_count) {
+        return;
     }
+
+    uint bucket_index = pos_to_bucket_index(positions[particle_index]);
+    bucket_indices[particle_index] = bucket_index;
+    atomicAdd(bucket_counts[bucket_index], 1); // Increment bucket count for counting sort if this is a valid particle index
 }
 
 /*  
