@@ -1,12 +1,12 @@
 extends Node2D
 
 @export var particle_count: int = 1024
-@export var particle_size: float = 1.0/4
+@export var particle_size: float = 1.0/16
 @export var smoothing_radius: float = 50
 @export var particle_mass: float = 25
 @export var pressure_multiplier: float = 100000
 @export var target_density: float = 0.2
-@export var gravity: float = 200
+@export var gravity: float = 100
 @export_range(0, 1) var elasticity: float = 0.95
 @export var viscocity: float = 200
 @export var steps_per_frame: int = 1
@@ -114,10 +114,7 @@ func _setup_shaders() -> void:
 	particle_data_texture_rd = Texture2DRD.new()
 	particle_data_texture_rd.texture_rd_rid = particle_data_buffer # Connect texture to buffer
 	process_material.set_shader_parameter("particle_data", particle_data_texture_rd) # Texture stored by reference, will be updated in the particle shader once the compute shader edits it
-	# Debug the texture size:
-	print("Image size: ", image_size)
-	print("Can hold particles: ", image_size * image_size)
-	print("Actual particle count: ", particle_count)
+
 	# Load compute shaders
 	var clear_bucket_counts_shader := _create_compute_shader(load("res://shaders/compute/clear_bucket_counts.glsl"))
 	var count_buckets_shader := _create_compute_shader(load("res://shaders/compute/count_buckets.glsl"))
