@@ -65,6 +65,12 @@ ivec2 pos_to_grid_pos(vec2 pos) {
     return ivec2(pos / params.smoothing_radius);
 }
 
+func _density_kernel_derivative(dst: float) -> float:
+	if dst >= smoothing_radius:
+		return 0
+	var factor = pow(smoothing_radius, 3) * PI / 1.5
+	return -2 * (smoothing_radius - dst) / factor
+
 // The code we want to execute in each invocation
 void main() {
 

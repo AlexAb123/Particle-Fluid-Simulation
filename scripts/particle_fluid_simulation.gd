@@ -239,8 +239,8 @@ func _simulation_step() -> void:
 	_run_compute_pipeline(count_buckets_pipeline, count_buckets_uniform_set, ceil(bucket_count/1024.0))
 	_run_compute_pipeline(prefix_sum_pipeline, prefix_sum_uniform_set, 1)
 	_run_compute_pipeline(scatter_pipeline, scatter_uniform_set, ceil(particle_count/1024.0))
-	#_run_compute_pipeline(densities_pipeline, densities_uniform_set, ceil(particle_count/1024.0))
-	#_run_compute_pipeline(forces_pipeline, forces_uniform_set, ceil(particle_count/1024.0))
+	_run_compute_pipeline(densities_pipeline, densities_uniform_set, ceil(particle_count/1024.0))
+	_run_compute_pipeline(forces_pipeline, forces_uniform_set, ceil(particle_count/1024.0))
 	
 	# For debugging counting sort
 	#var output_bytes := rd.buffer_get_data(bucket_indices_buffer)

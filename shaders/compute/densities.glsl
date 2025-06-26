@@ -51,6 +51,19 @@ ivec2 pos_to_grid_pos(vec2 pos) {
     return ivec2(pos / params.smoothing_radius);
 }
 
+float density_to_pressure(float density) {
+    return max(0, (density - params.target_density) * params.pressure_multiplier); // Clamp to 0 so there aren't any attractive forces (attractive forces don't really play well and look odd)
+}
+
+const float PI = 3.14159265359;
+float density_kernel(float dst) {
+	if (dst >= params.smoothing_radius) {
+		return 0;
+    }
+	float factor = pow(params.smoothing_radius, 3) * PI / 1.5;
+	return pow(params.smoothing_radius - dst, 2) / factor;
+}
+
 // The code we want to execute in each invocation
 void main() {
 
@@ -59,6 +72,9 @@ void main() {
     if (particle_index >= params.particle_count) {
         return;
     }
+
+    float density = 0.0;
+    vec2 pos = positions[particle_index];
 
     ivec2 grid_pos = pos_to_grid_pos(positions[particle_index]);
 
@@ -81,7 +97,15 @@ void main() {
 
                 uint neighbour_index = particles_by_bucket[i];
 
+                // Density calulations
+                float dst = distance(pos, positions[neighbour_index]);
+                float influence = density_kernel(dst);
+                density += influence * params.particle_mass;
+
             }
         }
     }
+
+    densities[particle_index] = density;
+    pressures[particle_index] = density_to_pressure(density);
 }
