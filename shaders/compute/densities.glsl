@@ -1,7 +1,6 @@
 #[compute]
 #version 450
 
-// Invocations in the (x, y, z) dimension
 layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
 
 layout(set = 0, binding = 0, std430) restrict buffer Params {
@@ -73,7 +72,9 @@ void main() {
     if (particle_index >= params.particle_count) {
         return;
     }
-
+    if (particle_index >= params.particle_count) {
+        return;
+    }
     vec2 pos = positions[particle_index];
     float density = 0.0;
 

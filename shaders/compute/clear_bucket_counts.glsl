@@ -33,7 +33,7 @@ void main() {
     if (bucket_index >= params.bucket_count) {
         return;
     }
-    
+
     bucket_counts[bucket_index] = 0; // Reset bucket count if this is a valid bucket index
 }
 

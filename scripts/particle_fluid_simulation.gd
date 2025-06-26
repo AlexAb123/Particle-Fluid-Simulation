@@ -73,7 +73,7 @@ var rd: RenderingDevice
 
 # Compute shader pipelines
 var clear_bucket_counts_pipeline: RID # Clears bucket counts. Needs bucket_count invocations.
-var count_buckets_pipeline: RID # Counts buckets for bucket sort. Needs bucket_count invocations.
+var count_buckets_pipeline: RID # Counts buckets for bucket sort. Needs particle_count invocations.
 var prefix_sum_pipeline: RID # Runs a prefix sum on bucket_counts and generates bucket_offsets for quick neighbour search. Needs 1 invocation (because it does not yet use a parallel prefix sum algorithm).
 var scatter_pipeline: RID # Scatters the prefix sum to create particles_by_bucket which is used alongside bucket_offsets for quick neighbour search. Needs particle_count invocations.
 var densities_pipeline: RID # Calculates densities and pressure to every particle. Needs particle_count invocations.
@@ -241,7 +241,7 @@ func _create_params_uniform(binding: int) -> RDUniform:
 	
 func _simulation_step(delta: float) -> void:
 	_run_compute_pipeline(clear_bucket_counts_pipeline, clear_bucket_counts_uniform_set, ceil(bucket_count/1024.0))
-	_run_compute_pipeline(count_buckets_pipeline, count_buckets_uniform_set, ceil(bucket_count/1024.0))
+	_run_compute_pipeline(count_buckets_pipeline, count_buckets_uniform_set, ceil(particle_count/1024.0))
 	_run_compute_pipeline(prefix_sum_pipeline, prefix_sum_uniform_set, 1)
 	_run_compute_pipeline(scatter_pipeline, scatter_uniform_set, ceil(particle_count/1024.0))
 	_run_compute_pipeline(densities_pipeline, densities_uniform_set, ceil(particle_count/1024.0))
@@ -311,8 +311,13 @@ func _run_compute_pipeline_delta(pipeline: RID, uniform_set: RID, thread_count: 
 	rd.compute_list_end()
 	# Don't need rd.submit() or rd.sync(). It only applies for local rendering devices (we are using the global one)
 
-func _physics_process(delta: float) -> void:
+func _process(delta: float) -> void:
 	fps_counter.text = str(int(Engine.get_frames_per_second())) + " fps"
+	print("Particle count: ", particle_count)
+	print("Bucket count: ", bucket_count) 
+	print("Grid dimensions: ", grid_width, "x", grid_height)
+	print("Count buckets dispatch: ", ceil(bucket_count/1024.0))
+	print("Scatter dispatch: ", ceil(particle_count/1024.0))
 	for i in range(steps_per_frame):
 		_simulation_step(delta)
 		
