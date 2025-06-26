@@ -18,7 +18,7 @@ void process() {
 	ivec2 pixel_coord = ivec2(index % image_size, index / image_size);
 
 	vec4 data = texelFetch(particle_data, pixel_coord, 0);
-	
+
 	vec2 pos = data.xy;
 
 	// Set particle positions
@@ -29,5 +29,5 @@ void process() {
 // Show the full gradient as a test pattern:
 float t = float(int(INDEX) % 100) / 99.0; // Creates 0.0 to 1.0 across particles
 COLOR = texture(gradient_texture, vec2(t, 0.5));
-	
+
 }

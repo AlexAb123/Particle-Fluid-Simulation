@@ -33,7 +33,6 @@ var particle_data_texture_rd: Texture2DRD
 var particle_data_buffer : RID
 var image_size = int(ceil(sqrt(particle_count)))
 
-
 func _ready():
 	
 	gpu_particles_2d.amount = particle_count
@@ -45,6 +44,8 @@ func _ready():
 	grid_width = int(ceil(screen_width / smoothing_radius))
 	grid_height = int(ceil(screen_height / smoothing_radius))
 	bucket_count = grid_width * grid_height
+	
+	print(bucket_count)
 	
 	particle_data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAH)
 	
@@ -246,8 +247,20 @@ func _simulation_step(delta: float) -> void:
 	_run_compute_pipeline(densities_pipeline, densities_uniform_set, ceil(particle_count/1024.0))
 	_run_compute_pipeline_delta(forces_pipeline, forces_uniform_set, ceil(particle_count/1024.0), delta)
 	
-
+	var output_bytes := rd.buffer_get_data(densities_buffer)
+	var output := Array(output_bytes.to_float32_array())
+	print("density: ", output.max())
+	output_bytes = rd.buffer_get_data(positions_buffer)
+	output = Array(output_bytes.to_float32_array())
+	print("pos: ", output.max())
+	output_bytes = rd.buffer_get_data(velocities_buffer)
+	output = Array(output_bytes.to_float32_array())
+	print("vel: ",  output.max())
+	output_bytes = rd.buffer_get_data(pressures_buffer)
+	output = Array(output_bytes.to_float32_array())
+	print("pressure: ",  output.max())
 	
+	print("-------------------------------------------")
 	# For debugging counting sort
 	#var output_bytes := rd.buffer_get_data(bucket_indices_buffer)
 	#var output := output_bytes.to_int32_array()
@@ -298,7 +311,30 @@ func _run_compute_pipeline_delta(pipeline: RID, uniform_set: RID, thread_count: 
 	rd.compute_list_end()
 	# Don't need rd.submit() or rd.sync(). It only applies for local rendering devices (we are using the global one)
 
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	fps_counter.text = str(int(Engine.get_frames_per_second())) + " fps"
 	for i in range(steps_per_frame):
 		_simulation_step(delta)
+		
+func _exit_tree() -> void:
+	rd.free_rid(bucket_indices_buffer)
+	rd.free_rid(bucket_counts_buffer)
+	rd.free_rid(bucket_prefix_sum_buffer)
+	rd.free_rid(bucket_offsets_buffer)
+	rd.free_rid(particles_by_bucket_buffer)
+	rd.free_rid(positions_buffer)
+	rd.free_rid(velocities_buffer)
+	rd.free_rid(densities_buffer)
+	rd.free_rid(pressures_buffer)
+	rd.free_rid(clear_bucket_counts_pipeline)
+	rd.free_rid(count_buckets_pipeline)
+	rd.free_rid(prefix_sum_pipeline)
+	rd.free_rid(scatter_pipeline)
+	rd.free_rid(densities_pipeline)
+	rd.free_rid(forces_pipeline)
+	rd.free_rid(clear_bucket_counts_uniform_set)
+	rd.free_rid(count_buckets_uniform_set)
+	rd.free_rid(prefix_sum_uniform_set)
+	rd.free_rid(scatter_uniform_set)
+	rd.free_rid(densities_uniform_set)
+	rd.free_rid(forces_uniform_set)

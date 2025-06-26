@@ -30,9 +30,11 @@ void main() {
 
     uint bucket_index = gl_GlobalInvocationID.x;
 
-    if (bucket_index < params.bucket_count) {
-        bucket_counts[bucket_index] = 0; // Reset bucket count if this is a valid bucket index
+    if (bucket_index >= params.bucket_count) {
+        return;
     }
+    
+    bucket_counts[bucket_index] = 0; // Reset bucket count if this is a valid bucket index
 }
 
 /*  
