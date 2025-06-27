@@ -108,7 +108,7 @@ float viscosity_kernel(float dst) // Poly6 Kernel
 	if (dst >= params.smoothing_radius) {
 		return 0;
     }
-    float factor = 8.0 / (pow(params.smoothing_radius, 8) * PI);
+    float factor = 4.0 / (pow(params.smoothing_radius, 8) * PI);
     return pow(pow(params.smoothing_radius, 2) - pow(dst, 2), 3) * factor;
 }
 
