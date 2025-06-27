@@ -2,3 +2,4 @@ res://2D/scenes/particle_fluid_simulation.tscn
 res://assets/gradient.tres
 res://2D/shaders/particle_shader.gdshader
 res://cpu2D/cpu_simulation.gd
+res://2D/scripts/particle_fluid_simulation.gd

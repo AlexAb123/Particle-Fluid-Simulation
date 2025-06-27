@@ -9,7 +9,7 @@ extends Node2D
 @export var near_pressure_multiplier: float = 100000
 @export var gravity: float = 150
 @export_range(0, 1) var elasticity: float = 0.95
-@export var viscosity: float = 25
+@export var viscosity: float = 50
 @export var steps_per_frame: int = 1
 @export var mouse_force_multiplier: float = 200
 @export var mouse_force_radius: float = 150
@@ -107,7 +107,7 @@ func _input(event):
 	elif event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			mouse_force_strength = int(event.pressed) * mouse_force_multiplier
-		elif event.button_index == MOUSE_BUTTON_RIGHT:
+		if event.button_index == MOUSE_BUTTON_RIGHT:
 			mouse_force_strength = -1 * int(event.pressed) * mouse_force_multiplier
 			
 func _setup_shaders() -> void:

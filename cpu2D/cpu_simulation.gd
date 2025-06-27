@@ -180,3 +180,7 @@ func _density_to_pressure(density: float) -> float:
 	# We just need to divide by some mulitple of R^5 to normalize it. Here we divide by pi R^5 / 10 just to make it equal to 1
 		#Need Derivative of smoothing function
 	#The influence of each particle is determined by the smoothing function. Has 0 influence at distance > smoothing radius
+
+
+# For 3D:
+#\int_{0}^{2\pi}\int_{0}^{\pi}\int_{0}^{R}\max\left(0,\left(R^{2}-r^{2}\right)^{3}\right)\cdot\left(\frac{315}{R^{9}\pi64}\right)r^{2}\sin\theta drd\theta d\phi

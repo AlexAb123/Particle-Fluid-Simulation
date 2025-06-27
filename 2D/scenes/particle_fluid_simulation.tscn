@@ -15,8 +15,8 @@ shader_parameter/image_size = 0
 script = ExtResource("1_86u53")
 particle_count = 25000
 target_density = 2.0
-viscosity = 100.0
-mouse_force_multiplier = 1000.0
+viscosity = 500.0
+mouse_force_multiplier = 2500.0
 gradient = ExtResource("2_f3dii")
 
 [node name="GPUParticles2D" type="GPUParticles2D" parent="."]
