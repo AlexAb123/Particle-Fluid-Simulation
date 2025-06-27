@@ -1,16 +1,21 @@
 extends Node2D
 
 @export var particle_count: int = 1024
-@export var particle_size: float = 1.0/16
+@export var particle_size: float = 1.0/4
 @export var smoothing_radius: float = 50
-@export var particle_mass: float = 25
-@export var pressure_multiplier: float = 100000
-@export var target_density: float = 0.2
-@export var gravity: float = 100
+@export var particle_mass: float = 10
+@export var pressure_multiplier: float = 50000
+@export var target_density: float = 0.3
+@export var gravity: float = 25
 @export_range(0, 1) var elasticity: float = 0.95
 @export var viscocity: float = 200
 @export var steps_per_frame: int = 1
+@export var mouse_force_multiplier: float = 100
+@export var mouse_force_radius: float = 150
 @export var gradient: Gradient
+
+var mouse_force_strength: float
+var mouse_force_position: Vector2
 
 var positions: PackedVector2Array = PackedVector2Array()
 var velocities: PackedVector2Array = PackedVector2Array()
@@ -51,11 +56,9 @@ func _ready():
 	for i in range(particle_count):
 		#positions.append(Vector2(randf() * screen_width, randf() * screen_height))
 		positions.append(Vector2(randf() * screen_width/4 + screen_width/2 - screen_width/8, randf() * screen_height/4 + screen_height/2 - screen_height/8))
-		#positions.append(Vector2.ZERO)
 		velocities.append(Vector2(0, 0))
 	
 	# Particle shader setup
-
 	process_material = gpu_particles_2d.process_material as ShaderMaterial
 	process_material.set_shader_parameter("particle_count", particle_count)
 	process_material.set_shader_parameter("particle_size", particle_size)
@@ -66,7 +69,6 @@ func _ready():
 	process_material.set_shader_parameter("gradient_texture", gradient_texture)
 	
 	RenderingServer.call_on_render_thread(_setup_shaders)
-	
 	
 var rd: RenderingDevice
 
@@ -98,6 +100,15 @@ var scatter_uniform_set: RID
 var densities_uniform_set: RID
 var forces_uniform_set: RID
 
+func _input(event):
+	if event is InputEventMouseMotion:
+		mouse_force_position = event.position
+	elif event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			mouse_force_strength = int(event.pressed) * mouse_force_multiplier
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			mouse_force_strength = -1 * int(event.pressed) * mouse_force_multiplier
+			
 func _setup_shaders() -> void:
 	
 	# Get global rendering device
@@ -244,7 +255,7 @@ func _simulation_step(delta: float) -> void:
 	_run_compute_pipeline(prefix_sum_pipeline, prefix_sum_uniform_set, 1)
 	_run_compute_pipeline(scatter_pipeline, scatter_uniform_set, ceil(particle_count/1024.0))
 	_run_compute_pipeline(densities_pipeline, densities_uniform_set, ceil(particle_count/1024.0))
-	_run_compute_pipeline_delta(forces_pipeline, forces_uniform_set, ceil(particle_count/1024.0), delta)
+	_run_compute_pipeline_push_constant(forces_pipeline, forces_uniform_set, ceil(particle_count/1024.0), [delta, mouse_force_strength, mouse_force_position.x, mouse_force_position.y, mouse_force_radius, 0.0, 0.0, 0.0])
 	
 func _create_compute_shader(shader_file: Resource) -> RID:
 	var shader_spirv: RDShaderSPIRV = shader_file.get_spirv()
@@ -258,15 +269,11 @@ func _run_compute_pipeline(pipeline: RID, uniform_set: RID, thread_count: int) -
 	rd.compute_list_end()
 	# Don't need rd.submit() or rd.sync(). It only applies for local rendering devices (we are using the global one)
 
-func _run_compute_pipeline_delta(pipeline: RID, uniform_set: RID, thread_count: int, delta: float) -> void:
+func _run_compute_pipeline_push_constant(pipeline: RID, uniform_set: RID, thread_count: int, push_constant: Array) -> void: # push_constant array must be at least length 4 (some weird compute shader thing)
 	var push_constant_bytes := PackedByteArray()
-	push_constant_bytes.resize(16)  # Make it 16 bytes instead of 4
-	push_constant_bytes.encode_float(0, delta)
-	# Fill the rest with zeros for padding
-	push_constant_bytes.encode_float(4, 0.0)
-	push_constant_bytes.encode_float(8, 0.0)
-	push_constant_bytes.encode_float(12, 0.0)
-	
+	push_constant_bytes.resize(4 * push_constant.size())
+	for i in range(push_constant.size()):
+		push_constant_bytes.encode_float(4 * i, push_constant[i])
 	var compute_list := rd.compute_list_begin()
 	rd.compute_list_bind_compute_pipeline(compute_list, pipeline)
 	rd.compute_list_bind_uniform_set(compute_list, uniform_set, 0)

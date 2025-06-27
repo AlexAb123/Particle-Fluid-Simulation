@@ -50,10 +50,12 @@ layout(binding = 10, rgba16f) uniform image2D particle_data;
 
 layout(push_constant, std430) uniform PushConstant {
     float delta;
-    float padding1;
-    float padding2;
-    float padding3;
-} push_constant;
+    float mouse_force_strength;
+    float mouse_pos_x;
+    float mouse_pos_y;
+    float mouse_force_radius;
+}
+push_constant;
 
 uint grid_pos_to_bucket_index(ivec2 grid_pos) {
     return grid_pos.y * params.grid_width + grid_pos.x; // Flattens grid into a one dimensional line
@@ -89,9 +91,7 @@ void main() {
     if (particle_index >= params.particle_count) {
         return;
     }
-    if (particle_index >= params.particle_count) {
-        return;
-    }
+    
     vec2 pos = positions[particle_index];
     vec2 velocity = velocities[particle_index];
     float density = densities[particle_index];
@@ -144,12 +144,19 @@ void main() {
         }
     }
 
+    vec2 mouse_force = vec2(0.0, 0.0);
+    vec2 mouse_offset = vec2(push_constant.mouse_pos_x, push_constant.mouse_pos_y) - pos;
+    float mouse_dst = length(mouse_offset);
+    if (length(mouse_offset) < push_constant.mouse_force_radius) {
+        mouse_force = mouse_offset / mouse_dst * push_constant.mouse_force_strength / density;
+    }
+
     pressure_force /= density;
     viscocity_force /= density;
     vec2 gravity_force = vec2(0, params.gravity);
 
     // Update velocity
-    velocities[particle_index] += (pressure_force + viscocity_force + gravity_force) * push_constant.delta;
+    velocities[particle_index] += (pressure_force + viscocity_force + mouse_force + gravity_force) * push_constant.delta;
 
     // Update position
     positions[particle_index] += velocities[particle_index] * push_constant.delta;
