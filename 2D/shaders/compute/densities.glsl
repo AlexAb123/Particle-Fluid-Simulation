@@ -43,25 +43,15 @@ layout(set = 0, binding = 8, std430) restrict buffer NearDensities {
     float near_densities[];
 };
 
-layout(set = 0, binding = 9, std430) restrict buffer Pressures {
-    float pressures[];
-};
-
 uint grid_pos_to_bucket_index(ivec2 grid_pos) {
     return grid_pos.y * params.grid_width + grid_pos.x; // Flattens grid into a one dimensional line
 }
 
 ivec2 pos_to_grid_pos(vec2 pos) {
-    return ivec2(pos / params.smoothing_radius);
+    return ivec2(pos / params.smoothing_radius); 
 }
 
-float density_to_pressure(float density) {
-    return (density - params.target_density) * params.pressure_multiplier; // Can also clamp to 0 so there aren't any attractive forces (attractive forces don't really play well and can look odd)
-}
 
-float near_density_to_near_pressure(float near_density) {
-    return near_density * params.near_pressure_multiplier;
-}
 
 const float PI = 3.14159265359;
 
@@ -78,10 +68,9 @@ float near_density_kernel(float dst) {
         return 0;
 	}
     float factor = pow(params.smoothing_radius, 5) * PI / 10.0;
-    return pow(params.smoothing_radius - dst, 3) * 1;
+    return pow(params.smoothing_radius - dst, 3) / factor;
 }
 
-// The code we want to execute in each invocation
 void main() {
 
     uint particle_index = gl_GlobalInvocationID.x;
@@ -94,6 +83,7 @@ void main() {
     }
     vec2 pos = positions[particle_index];
     float density = 0.0;
+    float near_density = 0.0;
 
     ivec2 grid_pos = pos_to_grid_pos(positions[particle_index]);
 
@@ -121,12 +111,11 @@ void main() {
                 if (dst > params.smoothing_radius) {
                     continue;
                 }
-                float influence = density_kernel(dst);
-                density += influence * params.particle_mass;
-
+                density += density_kernel(dst) * params.particle_mass;
+                near_density += near_density_kernel(dst) * params.particle_mass;
             }
         }
     }
     densities[particle_index] = density;
-    pressures[particle_index] = density_to_pressure(density);
+    near_densities[particle_index] = near_density;
 }

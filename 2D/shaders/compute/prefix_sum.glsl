@@ -52,5 +52,4 @@ void main() { // Optimize this buy implementing a prefix sum algorithm that util
         bucket_offsets[i] = sum;
         sum += bucket_counts[i];
     }
-
 }

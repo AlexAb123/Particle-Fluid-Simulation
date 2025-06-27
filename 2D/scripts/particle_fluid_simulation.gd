@@ -22,7 +22,6 @@ var positions: PackedVector2Array = PackedVector2Array()
 var velocities: PackedVector2Array = PackedVector2Array()
 var densities: PackedFloat32Array = PackedFloat32Array()
 var near_densities: PackedFloat32Array = PackedFloat32Array()
-var pressures: PackedFloat32Array = PackedFloat32Array()
 var forces: PackedVector2Array = PackedVector2Array()
 
 var screen_width: float
@@ -92,7 +91,6 @@ var positions_buffer: RID
 var velocities_buffer: RID
 var densities_buffer: RID
 var near_densities_buffer: RID
-var pressures_buffer: RID
 var forces_buffer: RID
 
 # Uniform sets
@@ -159,7 +157,6 @@ func _setup_shaders() -> void:
 	velocities_buffer = rd.storage_buffer_create(velocities_bytes.size(), velocities_bytes)
 	densities_buffer = rd.storage_buffer_create(4 * particle_count)
 	near_densities_buffer = rd.storage_buffer_create(4 * particle_count)
-	pressures_buffer = rd.storage_buffer_create(4 * particle_count)
 	
 	# Create uniforms
 	var params_uniform := _create_params_uniform(0)
@@ -172,11 +169,10 @@ func _setup_shaders() -> void:
 	
 	var positions_uniform := _create_uniform(positions_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 6)
 	var densities_uniform := _create_uniform(densities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 7)
-	var near_densities_uniform := _create_uniform(densities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 8)
-	var pressures_uniform := _create_uniform(pressures_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 9)
-	var velocities_uniform := _create_uniform(velocities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 10)
+	var near_densities_uniform := _create_uniform(near_densities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 8)
+	var velocities_uniform := _create_uniform(velocities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 9)
 	
-	var particle_data_uniform := _create_uniform(particle_data_buffer, RenderingDevice.UNIFORM_TYPE_IMAGE, 11)
+	var particle_data_uniform := _create_uniform(particle_data_buffer, RenderingDevice.UNIFORM_TYPE_IMAGE, 10)
 	
 	# Create uniform sets
 	clear_bucket_counts_uniform_set = rd.uniform_set_create(
@@ -211,8 +207,7 @@ func _setup_shaders() -> void:
 		particles_by_bucket_uniform,
 		positions_uniform,
 		densities_uniform,
-		near_densities_uniform,
-		pressures_uniform],
+		near_densities_uniform],
 		densities_shader,
 		0)
 	forces_uniform_set = rd.uniform_set_create(
@@ -222,7 +217,6 @@ func _setup_shaders() -> void:
 		positions_uniform,
 		densities_uniform,
 		near_densities_uniform,
-		pressures_uniform,
 		velocities_uniform,
 		particle_data_uniform],
 		forces_shader,
@@ -305,7 +299,7 @@ func _exit_tree() -> void:
 	rd.free_rid(positions_buffer)
 	rd.free_rid(velocities_buffer)
 	rd.free_rid(densities_buffer)
-	rd.free_rid(pressures_buffer)
+	rd.free_rid(near_densities_buffer)
 	rd.free_rid(clear_bucket_counts_pipeline)
 	rd.free_rid(count_buckets_pipeline)
 	rd.free_rid(prefix_sum_pipeline)
@@ -317,4 +311,5 @@ func _exit_tree() -> void:
 	rd.free_rid(prefix_sum_uniform_set)
 	rd.free_rid(scatter_uniform_set)
 	rd.free_rid(densities_uniform_set)
+	rd.free_rid(near_densities_uniform_set)
 	rd.free_rid(forces_uniform_set)

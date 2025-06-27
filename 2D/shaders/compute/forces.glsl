@@ -43,15 +43,11 @@ layout(set = 0, binding = 8, std430) restrict buffer NearDensities {
     float near_densities[];
 };
 
-layout(set = 0, binding = 9, std430) restrict buffer Pressures {
-    float pressures[];
-};
-
-layout(set = 0, binding = 10, std430) restrict buffer Velocities {
+layout(set = 0, binding = 9, std430) restrict buffer Velocities {
     vec2 velocities[];
 };
 
-layout(binding = 11, rgba16f) uniform image2D particle_data;
+layout(binding = 10, rgba16f) uniform image2D particle_data;
 
 layout(push_constant, std430) uniform PushConstant {
     float delta;
@@ -59,6 +55,9 @@ layout(push_constant, std430) uniform PushConstant {
     float mouse_pos_x;
     float mouse_pos_y;
     float mouse_force_radius;
+    float pad1;
+    float pad2;
+    float pad3;
 }
 push_constant;
 
@@ -68,6 +67,14 @@ uint grid_pos_to_bucket_index(ivec2 grid_pos) {
 
 ivec2 pos_to_grid_pos(vec2 pos) {
     return ivec2(pos / params.smoothing_radius);
+}
+
+float density_to_pressure(float density) {
+    return (density - params.target_density) * params.pressure_multiplier; // Can also clamp to 0 so there aren't any attractive forces (attractive forces don't really play well and can look odd)
+}
+
+float near_density_to_near_pressure(float near_density) {
+    return near_density * params.near_pressure_multiplier;
 }
 
 const float PI = 3.14159265359;
@@ -88,7 +95,14 @@ float density_kernel_derivative(float dst) {
 	return -2 * (params.smoothing_radius - dst) / factor;
 }
 
-// The code we want to execute in each invocation
+float near_density_kernel_derivative(float dst) {
+    if (dst >= params.smoothing_radius) {
+        return 0;
+	}
+    float factor = pow(params.smoothing_radius, 5) * PI / 10.0;
+    return -3 * pow(params.smoothing_radius - dst, 2) / factor;
+}
+
 void main() {
 
     uint particle_index = gl_GlobalInvocationID.x;
@@ -100,7 +114,11 @@ void main() {
     vec2 pos = positions[particle_index];
     vec2 velocity = velocities[particle_index];
     float density = densities[particle_index];
-    float pressure = pressures[particle_index];
+    float near_density = near_densities[particle_index];
+
+    float pressure = density_to_pressure(density);
+    float near_pressure = near_density_to_near_pressure(near_density);
+
     vec2 pressure_force = vec2(0.0, 0.0);
     vec2 viscocity_force = vec2(0.0, 0.0);
     
@@ -133,13 +151,15 @@ void main() {
                 }
                 vec2 neighbour_pos = positions[neighbour_index];
                 float neighbour_density = densities[neighbour_index];
+                float neighbour_near_density = near_densities[neighbour_index];
 
-                float magnitude = density_kernel_derivative(dst);
                 vec2 direction = dst == 0 ? vec2(0.0, 1.0) : (neighbour_pos - pos) / dst; // Should really be a random direction if dst == 0, but a simple vector like this should work since dst will rarely be 0
 
-                float shared_pressure = (pressure + pressures[neighbour_index]) / 2.0;
+                float shared_pressure = (pressure + density_to_pressure(neighbour_density)) / 2.0;
+                float shared_near_pressure = (near_pressure + near_density_to_near_pressure(neighbour_near_density)) / 2.0;
 
-                pressure_force += params.particle_mass / neighbour_density * magnitude * shared_pressure * direction;
+                pressure_force += params.particle_mass / neighbour_density * density_kernel_derivative(dst) * shared_pressure * direction;
+                pressure_force += params.particle_mass / neighbour_near_density * near_density_kernel_derivative(dst) * shared_near_pressure * direction;
                 	
                 float influence = density_kernel(dst);
 
