@@ -23,6 +23,6 @@ void process() {
 
 	// Set particle positions
 	TRANSFORM[3].xy = pos;
-	COLOR = texelFetch(gradient_texture, ivec2(clamp(int(data.z)/3, 0, 90), 0), 0);
+	COLOR = texelFetch(gradient_texture, ivec2(clamp(int(data.z/4.0), 0, 99), 0), 0);
 
 }

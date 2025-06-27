@@ -3,14 +3,15 @@ extends Node2D
 @export var particle_count: int = 4096
 @export var particle_size: float = 1.0/4
 @export var smoothing_radius: float = 50
-@export var particle_mass: float = 10
-@export var pressure_multiplier: float = 200000
-@export var target_density: float = 0.3
+@export var particle_mass: float = 50
+@export var target_density: float = 0.2
+@export var pressure_multiplier: float = 300000
+@export var near_pressure_multiplier: float = 1.5
 @export var gravity: float = 150
 @export_range(0, 1) var elasticity: float = 0.95
-@export var viscocity: float = 35
+@export var viscocity: float = 25
 @export var steps_per_frame: int = 1
-@export var mouse_force_multiplier: float = 750
+@export var mouse_force_multiplier: float = 200
 @export var mouse_force_radius: float = 150
 @export var gradient: Gradient
 
@@ -20,6 +21,7 @@ var mouse_force_position: Vector2
 var positions: PackedVector2Array = PackedVector2Array()
 var velocities: PackedVector2Array = PackedVector2Array()
 var densities: PackedFloat32Array = PackedFloat32Array()
+var near_densities: PackedFloat32Array = PackedFloat32Array()
 var pressures: PackedFloat32Array = PackedFloat32Array()
 var forces: PackedVector2Array = PackedVector2Array()
 
@@ -89,6 +91,7 @@ var particles_by_bucket_buffer: RID
 var positions_buffer: RID
 var velocities_buffer: RID
 var densities_buffer: RID
+var near_densities_buffer: RID
 var pressures_buffer: RID
 var forces_buffer: RID
 
@@ -98,6 +101,7 @@ var count_buckets_uniform_set: RID
 var prefix_sum_uniform_set: RID
 var scatter_uniform_set: RID
 var densities_uniform_set: RID
+var near_densities_uniform_set: RID
 var forces_uniform_set: RID
 
 func _input(event):
@@ -154,6 +158,7 @@ func _setup_shaders() -> void:
 	var velocities_bytes := velocities.to_byte_array()
 	velocities_buffer = rd.storage_buffer_create(velocities_bytes.size(), velocities_bytes)
 	densities_buffer = rd.storage_buffer_create(4 * particle_count)
+	near_densities_buffer = rd.storage_buffer_create(4 * particle_count)
 	pressures_buffer = rd.storage_buffer_create(4 * particle_count)
 	
 	# Create uniforms
@@ -167,10 +172,11 @@ func _setup_shaders() -> void:
 	
 	var positions_uniform := _create_uniform(positions_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 6)
 	var densities_uniform := _create_uniform(densities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 7)
-	var pressures_uniform := _create_uniform(pressures_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 8)
-	var velocities_uniform := _create_uniform(velocities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 9)
+	var near_densities_uniform := _create_uniform(densities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 8)
+	var pressures_uniform := _create_uniform(pressures_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 9)
+	var velocities_uniform := _create_uniform(velocities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 10)
 	
-	var particle_data_uniform := _create_uniform(particle_data_buffer, RenderingDevice.UNIFORM_TYPE_IMAGE, 10)
+	var particle_data_uniform := _create_uniform(particle_data_buffer, RenderingDevice.UNIFORM_TYPE_IMAGE, 11)
 	
 	# Create uniform sets
 	clear_bucket_counts_uniform_set = rd.uniform_set_create(
@@ -205,6 +211,7 @@ func _setup_shaders() -> void:
 		particles_by_bucket_uniform,
 		positions_uniform,
 		densities_uniform,
+		near_densities_uniform,
 		pressures_uniform],
 		densities_shader,
 		0)
@@ -214,6 +221,7 @@ func _setup_shaders() -> void:
 		particles_by_bucket_uniform,
 		positions_uniform,
 		densities_uniform,
+		near_densities_uniform,
 		pressures_uniform,
 		velocities_uniform,
 		particle_data_uniform],
@@ -239,12 +247,13 @@ func _create_params_uniform(binding: int) -> RDUniform:
 	params_bytes.encode_u32(24, bucket_count)
 	params_bytes.encode_float(28, particle_mass)
 	params_bytes.encode_float(32, pressure_multiplier)
-	params_bytes.encode_float(36, target_density)
-	params_bytes.encode_float(40, gravity)
-	params_bytes.encode_float(44, elasticity)
-	params_bytes.encode_float(48, viscocity)
-	params_bytes.encode_u32(52, steps_per_frame)
-	params_bytes.encode_u32(56, image_size)
+	params_bytes.encode_float(36, near_pressure_multiplier)
+	params_bytes.encode_float(40, target_density)
+	params_bytes.encode_float(44, gravity)
+	params_bytes.encode_float(48, elasticity)
+	params_bytes.encode_float(52, viscocity)
+	params_bytes.encode_u32(56, steps_per_frame)
+	params_bytes.encode_u32(60, image_size)
 	
 	var params_buffer = rd.storage_buffer_create(params_bytes.size(), params_bytes)
 	return _create_uniform(params_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, binding)

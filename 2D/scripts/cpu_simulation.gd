@@ -41,18 +41,8 @@ func _process(delta: float) -> void:
 	
 	for i in range(steps_per_frame):
 		_simulate_step(delta)
-
-	
+		
 	queue_redraw()
-	#var total = 0
-	#for d in densities:
-		#total += d
-	#print("Total Density: " + str(total))
-	#
-	#print("Density: " + str(densities[0]))
-	#print("Density Error: " + str(densities[0] - target_density))
-	#print("Pressure: " + str(pressures[0]))
-	
 	
 func _simulate_step(delta: float) -> void:
 	_update_spatial_buckets()
@@ -173,3 +163,20 @@ func _density_kernel_derivative(dst: float) -> float:
 # The further we are from the target density, the faster the particle should move, and the more pressure should be applied to it.
 func _density_to_pressure(density: float) -> float:
 	return max(0, (density - target_density) * pressure_multiplier) # Clamp to 0 so there aren't any attractive forces (attractive forces don't really play well and look odd)
+
+#Particles:
+	#Smoothing radius
+	#Smoothing function
+	# Normalizing the smoothing function:
+	# Why do we normalize? Because the total contribution of a single particle to the density should NOT depend on the smoothing radius.
+	# In other words, the integral of the smoothing function should be constant.
+	# Plug into desmos 3D for a visualization of non-normalized (the last 2 lines are the normalized form). Move radius, the total contribution (which is the volume of the surface) changes with respect to R
+	 #R=1
+	 #r=R
+	 #z=\max\left(0,\ \left(R-r\right)^{3}\right)\left\{z>0\right\}
+	 #\int_{0}^{2\pi}\int_{0}^{R}\max\left(0,\ \left(R-r\right)^{3}\right)rdrd\theta
+	 #z=\frac{\max\left(0,\ \left(R-r\right)^{3}\right)}{\frac{\pi R^{5}}{10}}\left\{z>0\right\}
+	 #\int_{0}^{2\pi}\int_{0}^{R}\frac{\max\left(0,\ \left(R-r\right)^{3}\right)}{\frac{\pi R^{5}}{10}}rdrd\theta
+	# We just need to divide by some mulitple of R^5 to normalize it. Here we divide by pi R^5 / 10 just to make it equal to 1
+		#Need Derivative of smoothing function
+	#The influence of each particle is determined by the smoothing function. Has 0 influence at distance > smoothing radius

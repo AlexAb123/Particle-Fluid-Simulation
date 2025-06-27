@@ -13,6 +13,7 @@ layout(set = 0, binding = 0, std430) restrict buffer Params {
     uint bucket_count;
     float particle_mass; 
     float pressure_multiplier;
+    float near_pressure_multiplier;
     float target_density;
     float gravity;
     float elasticity;
@@ -38,7 +39,11 @@ layout(set = 0, binding = 7, std430) restrict buffer Densities {
     float densities[];
 };
 
-layout(set = 0, binding = 8, std430) restrict buffer Pressures {
+layout(set = 0, binding = 8, std430) restrict buffer NearDensities {
+    float near_densities[];
+};
+
+layout(set = 0, binding = 9, std430) restrict buffer Pressures {
     float pressures[];
 };
 
@@ -54,14 +59,26 @@ float density_to_pressure(float density) {
     return (density - params.target_density) * params.pressure_multiplier; // Can also clamp to 0 so there aren't any attractive forces (attractive forces don't really play well and can look odd)
 }
 
+float near_density_to_near_pressure(float near_density) {
+    return near_density * params.near_pressure_multiplier;
+}
+
 const float PI = 3.14159265359;
 
 float density_kernel(float dst) {
 	if (dst >= params.smoothing_radius) {
 		return 0;
     }
-	float factor = pow(params.smoothing_radius, 3) * PI / 1.5;
+	float factor = pow(params.smoothing_radius, 4) * PI / 6.0;
 	return pow(params.smoothing_radius - dst, 2) / factor;
+}
+
+float near_density_kernel(float dst) {
+    if (dst >= params.smoothing_radius) {
+        return 0;
+	}
+    float factor = pow(params.smoothing_radius, 5) * PI / 10.0;
+    return pow(params.smoothing_radius - dst, 3) * 1;
 }
 
 // The code we want to execute in each invocation

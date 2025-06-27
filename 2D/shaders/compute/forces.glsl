@@ -13,12 +13,13 @@ layout(set = 0, binding = 0, std430) restrict buffer Params {
     uint bucket_count;
     float particle_mass; 
     float pressure_multiplier;
+    float near_pressure_multiplier;
     float target_density;
     float gravity;
     float elasticity;
     float viscocity;
     uint steps_per_frame;
-    uint image_size;
+    uint image_size; 
 }
 params;
 
@@ -38,15 +39,19 @@ layout(set = 0, binding = 7, std430) restrict buffer Densities {
     float densities[];
 };
 
-layout(set = 0, binding = 8, std430) restrict buffer Pressures {
+layout(set = 0, binding = 8, std430) restrict buffer NearDensities {
+    float near_densities[];
+};
+
+layout(set = 0, binding = 9, std430) restrict buffer Pressures {
     float pressures[];
 };
 
-layout(set = 0, binding = 9, std430) restrict buffer Velocities {
+layout(set = 0, binding = 10, std430) restrict buffer Velocities {
     vec2 velocities[];
 };
 
-layout(binding = 10, rgba16f) uniform image2D particle_data;
+layout(binding = 11, rgba16f) uniform image2D particle_data;
 
 layout(push_constant, std430) uniform PushConstant {
     float delta;
@@ -71,7 +76,7 @@ float density_kernel(float dst) {
 	if (dst >= params.smoothing_radius) {
 		return 0;
     }
-	float factor = pow(params.smoothing_radius, 3) * PI / 1.5;
+	float factor = pow(params.smoothing_radius, 4) * PI / 6.0;
 	return pow(params.smoothing_radius - dst, 2) / factor;
 }
 
@@ -79,7 +84,7 @@ float density_kernel_derivative(float dst) {
 	if (dst >= params.smoothing_radius) {
 		return 0;
     }
-	float factor = pow(params.smoothing_radius, 3) * PI / 1.5;
+	float factor = pow(params.smoothing_radius, 4) * PI / 6.0;
 	return -2 * (params.smoothing_radius - dst) / factor;
 }
 
@@ -145,10 +150,9 @@ void main() {
     }
 
     vec2 mouse_force = vec2(0.0, 0.0);
-    vec2 mouse_offset = vec2(push_constant.mouse_pos_x, push_constant.mouse_pos_y) - pos;
-    float mouse_dst = length(mouse_offset);
-    if (length(mouse_offset) < push_constant.mouse_force_radius) {
-        mouse_force = mouse_offset / mouse_dst * push_constant.mouse_force_strength / density;
+    vec2 mouse_dir = normalize(vec2(push_constant.mouse_pos_x, push_constant.mouse_pos_y) - pos);
+    if (length(vec2(push_constant.mouse_pos_x, push_constant.mouse_pos_y) - pos) < push_constant.mouse_force_radius) {
+        mouse_force = mouse_dir * push_constant.mouse_force_strength / density;
     }
 
     pressure_force /= density;

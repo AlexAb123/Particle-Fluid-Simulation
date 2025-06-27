@@ -13,12 +13,13 @@ layout(set = 0, binding = 0, std430) restrict buffer Params {
     uint bucket_count;
     float particle_mass; 
     float pressure_multiplier;
+    float near_pressure_multiplier;
     float target_density;
     float gravity;
     float elasticity;
     float viscocity;
     uint steps_per_frame;
-    uint image_size;
+    uint image_size; 
 }
 params;
 

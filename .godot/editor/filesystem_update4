@@ -15,3 +15,4 @@ res://particle_fluid_simulation_2D/scenes/particle_fluid_simulation.tscn
 res://particle_fluid_simulation_2D/shaders/particle_shader.gdshader
 res://particle_fluid_simulation_2D/scenes/main.tscn
 res://2D/scenes/cpu_simulation.tscn
+res://2D/scripts/cpu_simulation.gd

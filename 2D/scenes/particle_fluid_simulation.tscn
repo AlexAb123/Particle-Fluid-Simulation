@@ -13,6 +13,7 @@ shader_parameter/image_size = 0
 
 [node name="ParticleFluidSimulation" type="Node2D"]
 script = ExtResource("1_86u53")
+particle_count = 2048
 gradient = ExtResource("2_f3dii")
 
 [node name="GPUParticles2D" type="GPUParticles2D" parent="."]
