@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://0fvtg6ksb5ei"
+path="res://.godot/imported/scatter.glsl-811b5470f7869862310df14e0c5ceb38.res"
+
+[deps]
+
+source_file="res://2D/shaders/compute/scatter.glsl"
+dest_files=["res://.godot/imported/scatter.glsl-811b5470f7869862310df14e0c5ceb38.res"]
+
+[params]
+

@@ -3,3 +3,15 @@ res://assets/gradient.tres
 res://shaders/particle_shader.gdshader
 res://scenes/main.tscn
 res://scripts/particle_fluid_simulation.gd
+res://simulation2D/shaders/particle_shader.gdshader
+res://simulation2D/scenes/particle_fluid_simulation.tscn
+res://simulation2D/scenes/main.tscn
+res://simulation2D/scripts/particle_fluid_simulation.gd
+res://2D/scenes/particle_fluid_simulation.tscn
+res://2D/shaders/particle_shader.gdshader
+res://2D/scripts/particle_fluid_simulation.gd
+res://2D/scenes/main.tscn
+res://particle_fluid_simulation_2D/scenes/particle_fluid_simulation.tscn
+res://particle_fluid_simulation_2D/shaders/particle_shader.gdshader
+res://particle_fluid_simulation_2D/scenes/main.tscn
+res://2D/scenes/cpu_simulation.tscn

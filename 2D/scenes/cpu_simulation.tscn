@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://s2fqe0rvv4gm"]
+
+[ext_resource type="Script" uid="uid://dg51kiqsfiy4g" path="res://2D/scripts/cpu_simulation.gd" id="1_cc7y0"]
+[ext_resource type="Gradient" uid="uid://63hsra8pvfe1" path="res://assets/gradient.tres" id="2_deaq4"]
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource("1_cc7y0")
+particle_mass = 25.0
+pressure_multiplier = 50000.0
+gravity = 50.0
+viscocity = 100.0
+gradient = ExtResource("2_deaq4")
+
+[node name="FPSCounter" type="Label" parent="."]
+offset_right = 1.0
+offset_bottom = 23.0
