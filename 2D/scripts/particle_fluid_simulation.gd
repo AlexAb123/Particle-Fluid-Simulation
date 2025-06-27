@@ -1,15 +1,15 @@
 extends Node2D
 
-@export var particle_count: int = 4096
+@export var particle_count: int = 1024
 @export var particle_size: float = 1.0/4
 @export var smoothing_radius: float = 50
 @export var particle_mass: float = 50
 @export var target_density: float = 0.2
 @export var pressure_multiplier: float = 300000
-@export var near_pressure_multiplier: float = 1.5
+@export var near_pressure_multiplier: float = 100000
 @export var gravity: float = 150
 @export_range(0, 1) var elasticity: float = 0.95
-@export var viscocity: float = 25
+@export var viscosity: float = 25
 @export var steps_per_frame: int = 1
 @export var mouse_force_multiplier: float = 200
 @export var mouse_force_radius: float = 150
@@ -245,7 +245,7 @@ func _create_params_uniform(binding: int) -> RDUniform:
 	params_bytes.encode_float(40, target_density)
 	params_bytes.encode_float(44, gravity)
 	params_bytes.encode_float(48, elasticity)
-	params_bytes.encode_float(52, viscocity)
+	params_bytes.encode_float(52, viscosity)
 	params_bytes.encode_u32(56, steps_per_frame)
 	params_bytes.encode_u32(60, image_size)
 	

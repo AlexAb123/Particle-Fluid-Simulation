@@ -17,7 +17,7 @@ layout(set = 0, binding = 0, std430) restrict buffer Params {
     float target_density;
     float gravity;
     float elasticity;
-    float viscocity;
+    float viscosity;
     uint steps_per_frame;
     uint image_size; 
 }
@@ -103,6 +103,15 @@ float near_density_kernel_derivative(float dst) {
     return -3 * pow(params.smoothing_radius - dst, 2) / factor;
 }
 
+float viscosity_kernel(float dst) // Poly6 Kernel
+{
+	if (dst >= params.smoothing_radius) {
+		return 0;
+    }
+    float factor = pow(params.smoothing_radius, 8) * PI / 8.0;
+    return pow(pow(params.smoothing_radius, 2) - pow(dst, 2), 3) / factor;
+}
+
 void main() {
 
     uint particle_index = gl_GlobalInvocationID.x;
@@ -120,7 +129,7 @@ void main() {
     float near_pressure = near_density_to_near_pressure(near_density);
 
     vec2 pressure_force = vec2(0.0, 0.0);
-    vec2 viscocity_force = vec2(0.0, 0.0);
+    vec2 viscosity_force = vec2(0.0, 0.0);
     
     ivec2 grid_pos = pos_to_grid_pos(positions[particle_index]);
 
@@ -161,9 +170,7 @@ void main() {
                 pressure_force += params.particle_mass / neighbour_density * density_kernel_derivative(dst) * shared_pressure * direction;
                 pressure_force += params.particle_mass / neighbour_near_density * near_density_kernel_derivative(dst) * shared_near_pressure * direction;
                 	
-                float influence = density_kernel(dst);
-
-                viscocity_force += params.viscocity * (velocities[neighbour_index] - velocity) * influence / neighbour_density;
+                viscosity_force += params.viscosity * (velocities[neighbour_index] - velocity) * viscosity_kernel(dst) / neighbour_density;
 
             }
         }
@@ -176,11 +183,11 @@ void main() {
     }
 
     pressure_force /= density;
-    viscocity_force /= density;
+    viscosity_force /= density;
     vec2 gravity_force = vec2(0, params.gravity);
 
     // Update velocity
-    velocities[particle_index] += (pressure_force + viscocity_force + mouse_force + gravity_force) * push_constant.delta;
+    velocities[particle_index] += (pressure_force + viscosity_force + mouse_force + gravity_force) * push_constant.delta;
 
     // Update position
     positions[particle_index] += velocities[particle_index] * push_constant.delta;

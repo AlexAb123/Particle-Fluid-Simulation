@@ -17,7 +17,7 @@ layout(set = 0, binding = 0, std430) restrict buffer Params {
     float target_density;
     float gravity;
     float elasticity;
-    float viscocity;
+    float viscosity;
     uint steps_per_frame;
     uint image_size; 
 }
@@ -50,8 +50,6 @@ uint grid_pos_to_bucket_index(ivec2 grid_pos) {
 ivec2 pos_to_grid_pos(vec2 pos) {
     return ivec2(pos / params.smoothing_radius); 
 }
-
-
 
 const float PI = 3.14159265359;
 
