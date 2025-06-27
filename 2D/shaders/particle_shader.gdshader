@@ -1,7 +1,7 @@
 shader_type particles;
 
 uniform sampler2D particle_data;
-uniform sampler2D gradient_texture;
+uniform sampler2D gradient_texture: repeat_disable;
 uniform int particle_count;
 uniform float particle_size;
 uniform int image_size;
@@ -23,6 +23,6 @@ void process() {
 
 	// Set particle positions
 	TRANSFORM[3].xy = pos;
-	COLOR = texelFetch(gradient_texture, ivec2(clamp(int(data.z/4.0), 0, 99), 0), 0);
 
+	COLOR = texture(gradient_texture, vec2(data.z/450.0, 0.5));
 }

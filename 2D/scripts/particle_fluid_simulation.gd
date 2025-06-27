@@ -39,38 +39,6 @@ var particle_data_texture_rd: Texture2DRD
 var particle_data_buffer : RID
 var image_size: int
 
-func _ready():
-	
-	image_size = int(ceil(sqrt(particle_count)))
-	gpu_particles_2d.amount = particle_count
-	gpu_particles_2d.scale = Vector2(0.1, 0.1)
-	
-	screen_width = get_viewport_rect().size.x
-	screen_height = get_viewport_rect().size.y
-	
-	grid_width = int(ceil(screen_width / smoothing_radius))
-	grid_height = int(ceil(screen_height / smoothing_radius))
-	bucket_count = grid_width * grid_height
-	
-	particle_data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAH)
-	
-	for i in range(particle_count):
-		#positions.append(Vector2(randf() * screen_width, randf() * screen_height))
-		positions.append(Vector2(randf() * screen_width/4 + screen_width/2 - screen_width/8, randf() * screen_height/4 + screen_height/2 - screen_height/8))
-		velocities.append(Vector2(0, 0))
-	
-	# Particle shader setup
-	process_material = gpu_particles_2d.process_material as ShaderMaterial
-	process_material.set_shader_parameter("particle_count", particle_count)
-	process_material.set_shader_parameter("particle_size", particle_size)
-	process_material.set_shader_parameter("image_size", image_size)
-	var gradient_texture: GradientTexture1D = GradientTexture1D.new()
-	gradient_texture.gradient = gradient
-	gradient_texture.width = 100
-	process_material.set_shader_parameter("gradient_texture", gradient_texture)
-	
-	RenderingServer.call_on_render_thread(_setup_shaders)
-	
 var rd: RenderingDevice
 
 # Compute shader pipelines
@@ -102,6 +70,37 @@ var densities_uniform_set: RID
 var near_densities_uniform_set: RID
 var forces_uniform_set: RID
 
+func _ready():
+	
+	image_size = int(ceil(sqrt(particle_count)))
+	gpu_particles_2d.amount = particle_count
+	gpu_particles_2d.scale = Vector2(0.1, 0.1)
+	
+	screen_width = get_viewport_rect().size.x
+	screen_height = get_viewport_rect().size.y
+	
+	grid_width = int(ceil(screen_width / smoothing_radius))
+	grid_height = int(ceil(screen_height / smoothing_radius))
+	bucket_count = grid_width * grid_height
+	
+	particle_data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAH)
+	
+	for i in range(particle_count):
+		#positions.append(Vector2(randf() * screen_width, randf() * screen_height))
+		positions.append(Vector2(randf() * screen_width/4 + screen_width/2 - screen_width/8, randf() * screen_height/4 + screen_height/2 - screen_height/8))
+		velocities.append(Vector2(0, 0))
+	
+	# Particle shader setup
+	process_material = gpu_particles_2d.process_material as ShaderMaterial
+	process_material.set_shader_parameter("particle_count", particle_count)
+	process_material.set_shader_parameter("particle_size", particle_size)
+	process_material.set_shader_parameter("image_size", image_size)
+	var gradient_texture: GradientTexture1D = GradientTexture1D.new()
+	gradient_texture.gradient = gradient
+	process_material.set_shader_parameter("gradient_texture", gradient_texture)
+	
+	RenderingServer.call_on_render_thread(_setup_shaders)
+	
 func _input(event):
 	if event is InputEventMouseMotion:
 		mouse_force_position = event.position
