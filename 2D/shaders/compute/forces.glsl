@@ -83,24 +83,24 @@ float density_kernel(float dst) {
 	if (dst >= params.smoothing_radius) {
 		return 0;
     }
-	float factor = pow(params.smoothing_radius, 4) * PI / 6.0;
-	return pow(params.smoothing_radius - dst, 2) / factor;
+	float factor = 6.0 / (pow(params.smoothing_radius, 4) * PI) ;
+	return pow(params.smoothing_radius - dst, 2) * factor;
 }
 
 float density_kernel_derivative(float dst) {
 	if (dst >= params.smoothing_radius) {
 		return 0;
     }
-	float factor = pow(params.smoothing_radius, 4) * PI / 6.0;
-	return -2 * (params.smoothing_radius - dst) / factor;
+	float factor = 6.0 / (pow(params.smoothing_radius, 4) * PI) ;
+	return -2 * (params.smoothing_radius - dst) * factor;
 }
 
 float near_density_kernel_derivative(float dst) {
     if (dst >= params.smoothing_radius) {
         return 0;
 	}
-    float factor = pow(params.smoothing_radius, 5) * PI / 10.0;
-    return -3 * pow(params.smoothing_radius - dst, 2) / factor;
+    float factor = 10.0 / (pow(params.smoothing_radius, 5) * PI);
+    return -3 * pow(params.smoothing_radius - dst, 2) * factor;
 }
 
 float viscosity_kernel(float dst) // Poly6 Kernel
@@ -108,8 +108,8 @@ float viscosity_kernel(float dst) // Poly6 Kernel
 	if (dst >= params.smoothing_radius) {
 		return 0;
     }
-    float factor = pow(params.smoothing_radius, 8) * PI / 8.0;
-    return pow(pow(params.smoothing_radius, 2) - pow(dst, 2), 3) / factor;
+    float factor = 8.0 / (pow(params.smoothing_radius, 8) * PI);
+    return pow(pow(params.smoothing_radius, 2) - pow(dst, 2), 3) * factor;
 }
 
 void main() {
