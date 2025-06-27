@@ -43,6 +43,8 @@ layout(set = 0, binding = 8, std430) restrict buffer NearDensities {
     float near_densities[];
 };
 
+const float PI = 3.14159265359;
+
 uint grid_pos_to_bucket_index(ivec2 grid_pos) {
     return grid_pos.y * params.grid_width + grid_pos.x; // Flattens grid into a one dimensional line
 }
@@ -50,8 +52,6 @@ uint grid_pos_to_bucket_index(ivec2 grid_pos) {
 ivec2 pos_to_grid_pos(vec2 pos) {
     return ivec2(pos / params.smoothing_radius); 
 }
-
-const float PI = 3.14159265359;
 
 float density_kernel(float dst) {
 	if (dst >= params.smoothing_radius) {

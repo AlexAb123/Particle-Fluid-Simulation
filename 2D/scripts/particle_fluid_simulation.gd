@@ -1,7 +1,7 @@
 extends Node2D
 
 @export var particle_count: int = 1024
-@export var particle_size: float = 1.0/4
+@export var particle_size: float = 1.0/8
 @export var smoothing_radius: float = 50
 @export var particle_mass: float = 50
 @export var target_density: float = 0.2

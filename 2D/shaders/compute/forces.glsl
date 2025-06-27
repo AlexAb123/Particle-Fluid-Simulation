@@ -61,6 +61,8 @@ layout(push_constant, std430) uniform PushConstant {
 }
 push_constant;
 
+const float PI = 3.14159265359;
+
 uint grid_pos_to_bucket_index(ivec2 grid_pos) {
     return grid_pos.y * params.grid_width + grid_pos.x; // Flattens grid into a one dimensional line
 }
@@ -76,8 +78,6 @@ float density_to_pressure(float density) {
 float near_density_to_near_pressure(float near_density) {
     return near_density * params.near_pressure_multiplier;
 }
-
-const float PI = 3.14159265359;
 
 float density_kernel(float dst) {
 	if (dst >= params.smoothing_radius) {
