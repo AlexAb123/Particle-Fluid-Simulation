@@ -58,7 +58,7 @@ layout(push_constant, std430) uniform PushConstant {
 push_constant;
 
 const float PI = 3.14159265359;
-const float epsilon = 0.00001;
+const float epsilon = 0.001;
 
 uint grid_pos_to_bucket_index(ivec2 grid_pos) {
     return grid_pos.y * params.grid_width + grid_pos.x; // Flattens grid into a one dimensional line
