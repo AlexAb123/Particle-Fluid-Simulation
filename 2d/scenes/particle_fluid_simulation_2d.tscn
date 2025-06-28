@@ -1,0 +1,29 @@
+[gd_scene load_steps=6 format=3 uid="uid://qjeep82n4f7t"]
+
+[ext_resource type="Script" uid="uid://dhdtlqk1jyglu" path="res://2d/scripts/particle_fluid_simulation_2d.gd" id="1_gwx1i"]
+[ext_resource type="Gradient" uid="uid://63hsra8pvfe1" path="res://assets/gradient.tres" id="2_54p2y"]
+[ext_resource type="Texture2D" uid="uid://h4upkqds6pv0" path="res://assets/sprites/particle.png" id="3_gku4g"]
+[ext_resource type="Shader" uid="uid://syvbrwrqshie" path="res://2d/shaders/particle_shader_2d.gdshader" id="4_6sk50"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wti10"]
+shader = ExtResource("4_6sk50")
+shader_parameter/particle_count = 0
+shader_parameter/particle_size = 0.0
+shader_parameter/image_size = 0
+
+[node name="ParticleFluidSimulation2D" type="Node2D"]
+script = ExtResource("1_gwx1i")
+particle_count = 25000
+target_density = 2.0
+viscosity = 250.0
+mouse_force_multiplier = 2500.0
+gradient = ExtResource("2_54p2y")
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="."]
+texture = ExtResource("3_gku4g")
+fixed_fps = 120
+process_material = SubResource("ShaderMaterial_wti10")
+
+[node name="FPSCounter" type="Label" parent="."]
+offset_right = 40.0
+offset_bottom = 23.0

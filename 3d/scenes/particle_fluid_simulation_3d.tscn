@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3 uid="uid://b0373xlag6mjt"]
+
+[ext_resource type="Shader" uid="uid://ccqn3u82pxb38" path="res://3d/shaders/particle_shader_3d.gdshader" id="1_cjcay"]
+[ext_resource type="Script" uid="uid://dncwxg6w03r5s" path="res://3d/scripts/particle_fluid_simulation_3d.gd" id="1_s30ui"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_s30ui"]
+shader = ExtResource("1_cjcay")
+shader_parameter/particle_count = 0
+shader_parameter/particle_size = 0.0
+shader_parameter/image_size = 0
+
+[sub_resource type="QuadMesh" id="QuadMesh_s30ui"]
+
+[node name="ParticleFluidSimulation3D" type="Node3D"]
+script = ExtResource("1_s30ui")
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.020411, 0.0258667, -0.00347042)
+process_material = SubResource("ShaderMaterial_s30ui")
+draw_pass_1 = SubResource("QuadMesh_s30ui")
+
+[node name="Label" type="Label" parent="."]
+offset_right = 40.0
+offset_bottom = 23.0

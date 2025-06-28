@@ -1,0 +1,35 @@
+[gd_scene load_steps=6 format=3 uid="uid://qjeep82n4f7t"]
+
+[ext_resource type="Script" uid="uid://dhdtlqk1jyglu" path="res://scripts/particle_fluid_simulation.gd" id="1_86u53"]
+[ext_resource type="Gradient" uid="uid://63hsra8pvfe1" path="res://assets/gradient.tres" id="2_f3dii"]
+[ext_resource type="Shader" uid="uid://syvbrwrqshie" path="res://shaders/particle_shader.gdshader" id="2_o62gx"]
+[ext_resource type="Texture2D" uid="uid://h4upkqds6pv0" path="res://assets/sprites/particle.png" id="2_wti10"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wti10"]
+shader = ExtResource("2_o62gx")
+shader_parameter/particle_count = 0
+shader_parameter/particle_size = 0.0
+shader_parameter/image_size = 0
+
+[node name="ParticleFluidSimulation" type="Node2D"]
+script = ExtResource("1_86u53")
+particle_count = 2000
+particle_size = null
+smoothing_radius = null
+particle_mass = 50.0
+pressure_multiplier = null
+target_density = 0.8
+gravity = 150.0
+elasticity = null
+viscocity = null
+steps_per_frame = null
+gradient = ExtResource("2_f3dii")
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="."]
+texture = ExtResource("2_wti10")
+fixed_fps = 120
+process_material = SubResource("ShaderMaterial_wti10")
+
+[node name="FPSCounter" type="Label" parent="."]
+offset_right = 40.0
+offset_bottom = 23.0

@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://7sv5n5vlotiq"
+path="res://.godot/imported/forces_3d.glsl-746bb9d4d03f19536a4d6fce63425ae3.res"
+
+[deps]
+
+source_file="res://3d/shaders/compute/forces_3d.glsl"
+dest_files=["res://.godot/imported/forces_3d.glsl-746bb9d4d03f19536a4d6fce63425ae3.res"]
+
+[params]
+

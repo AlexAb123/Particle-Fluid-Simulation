@@ -1,0 +1,13 @@
+[gd_scene load_steps=4 format=3 uid="uid://dgbsev7ibkywa"]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_3y61u"]
+[ext_resource type="Shader" path="res://shaders/main.gdshader" id="2_qbrik"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_scegn"]
+shader = ExtResource("2_qbrik")
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource("1_3y61u")
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="."]
+material = SubResource("ShaderMaterial_scegn")

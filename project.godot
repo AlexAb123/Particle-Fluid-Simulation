@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Particle Fluid Simulation"
-run/main_scene="uid://qjeep82n4f7t"
+run/main_scene="uid://b0373xlag6mjt"
 config/features=PackedStringArray("4.4", "Forward Plus")
 boot_splash/show_image=false
 
@@ -22,7 +22,8 @@ gdscript/warnings/integer_division=0
 
 [display]
 
-window/size/mode=3
+window/size/viewport_width=1800
+window/size/viewport_height=900
 window/vsync/vsync_mode=0
 
 [input]

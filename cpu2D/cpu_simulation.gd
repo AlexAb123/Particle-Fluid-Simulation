@@ -169,7 +169,7 @@ func _density_to_pressure(density: float) -> float:
 	#Smoothing function
 	# Normalizing the smoothing function:
 	# Why do we normalize? Because the total contribution of a single particle to the density should NOT depend on the smoothing radius.
-	# In other words, the integral of the smoothing function should be constant.
+	# In other words, the integral of the smoothing function over the area (2D) or volume should be constant.
 	# Plug into desmos 3D for a visualization of non-normalized (the last 2 lines are the normalized form). Move radius, the total contribution (which is the volume of the surface) changes with respect to R
 	 #R=1
 	 #r=R
@@ -180,7 +180,6 @@ func _density_to_pressure(density: float) -> float:
 	# We just need to divide by some mulitple of R^5 to normalize it. Here we divide by pi R^5 / 10 just to make it equal to 1
 		#Need Derivative of smoothing function
 	#The influence of each particle is determined by the smoothing function. Has 0 influence at distance > smoothing radius
-
 
 # For 3D:
 #\int_{0}^{2\pi}\int_{0}^{\pi}\int_{0}^{R}\max\left(0,\left(R^{2}-r^{2}\right)^{3}\right)\cdot\left(\frac{315}{R^{9}\pi64}\right)r^{2}\sin\theta drd\theta d\phi

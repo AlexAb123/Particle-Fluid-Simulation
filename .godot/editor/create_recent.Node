@@ -1,6 +1,7 @@
+Label
+GPUParticles3D
 GPUParticles2D
 MultiMeshInstance2D
-Label
 Tree
 TextureRect
 CanvasLayer
