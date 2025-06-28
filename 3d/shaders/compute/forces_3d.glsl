@@ -5,11 +5,13 @@ layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
 
 layout(set = 0, binding = 0, std430) restrict buffer Params {
 	uint particle_count;
-    float screen_width;
-    float screen_height;
+    float bounds_width;
+    float bounds_height;
+    float bounds_depth;
     float smoothing_radius;
     uint grid_width;
     uint grid_height;
+    uint grid_depth;
     uint bucket_count;
     float particle_mass; 
     float pressure_multiplier;
@@ -32,7 +34,7 @@ layout(set = 0, binding = 5, std430) restrict buffer ParticlesByBucket {
 };
 
 layout(set = 0, binding = 6, std430) restrict buffer Positions {
-    vec2 positions[];
+    vec3 positions[];
 };
 
 layout(set = 0, binding = 7, std430) restrict buffer Densities {
@@ -44,7 +46,7 @@ layout(set = 0, binding = 8, std430) restrict buffer NearDensities {
 };
 
 layout(set = 0, binding = 9, std430) restrict buffer Velocities {
-    vec2 velocities[];
+    vec3 velocities[];
 };
 
 layout(binding = 10, rgba16f) uniform image2D particle_data;
@@ -60,12 +62,14 @@ push_constant;
 const float PI = 3.14159265359;
 const float epsilon = 0.001;
 
-uint grid_pos_to_bucket_index(ivec2 grid_pos) {
-    return grid_pos.y * params.grid_width + grid_pos.x; // Flattens grid into a one dimensional line
+uint grid_pos_to_bucket_index(ivec3 grid_pos) { // Flattens grid into a one dimensional line
+    return (grid_pos.z * params.grid_width * params.grid_height) +
+            (grid_pos.y * params.grid_width) +
+            grid_pos.x;
 }
 
-ivec2 pos_to_grid_pos(vec2 pos) {
-    return ivec2(pos / params.smoothing_radius);
+ivec3 pos_to_grid_pos(vec3 pos) {
+    return ivec3(pos / params.smoothing_radius);
 }
 
 float density_to_pressure(float density) {
@@ -117,65 +121,69 @@ void main() {
         return;
     }
     
-    vec2 pos = positions[particle_index];
-    vec2 velocity = velocities[particle_index];
-    float density = densities[particle_index];
+    vec3 pos = positions[particle_index];
+    vec3 velocity = velocities[particle_index];
+    float density = max(densities[particle_index], epsilon); // Max with epsilon so we dont divide by 0 if density is really small
     float near_density = near_densities[particle_index];
 
     float pressure = density_to_pressure(density);
     float near_pressure = near_density_to_near_pressure(near_density);
 
-    vec2 pressure_force = vec2(0.0, 0.0);
-    vec2 viscosity_force = vec2(0.0, 0.0);
+    vec3 pressure_force = vec3(0.0, 0.0, 0.0);
+    vec3 viscosity_force = vec3(0.0, 0.0, 0.0);
     
-    ivec2 grid_pos = pos_to_grid_pos(positions[particle_index]);
+    ivec3 grid_pos = pos_to_grid_pos(positions[particle_index]);
 
     for (int dx = -1; dx <= 1; dx++) {
 
         for (int dy = -1; dy <= 1; dy++) {
 
-            ivec2 neighbour_grid_pos = grid_pos + ivec2(dx, dy);
+            for (int dz = -1; dz <= 1; dz++) {
 
-            if (neighbour_grid_pos.x < 0 || neighbour_grid_pos.y < 0 || neighbour_grid_pos.x >= int(params.grid_width) || neighbour_grid_pos.y >= int(params.grid_height)) {
-                continue; // Continue if neighbour_grid_pos is out of bounds
-            }
+                ivec3 neighbour_grid_pos = grid_pos + ivec3(dx, dy, dz);
 
-            uint neighbour_bucket_index = grid_pos_to_bucket_index(neighbour_grid_pos);
-            uint start = bucket_offsets[neighbour_bucket_index];
-            uint end = neighbour_bucket_index + 1 < params.bucket_count ? bucket_offsets[neighbour_bucket_index + 1] : params.particle_count; // End at the next offset if it exists, else end at the end of the particles_by_bucket array (size of particles_by_bucket array is particle_count)
-
-            // Iterate over all particle indices in neighbour_bucket_index
-            for (uint i = start; i < end; i++) {
-
-                uint neighbour_index = particles_by_bucket[i];
-                if (particle_index == neighbour_index) { // Particle doesn't exert forces on itself
-                    continue;
+                if (neighbour_grid_pos.x < 0 || neighbour_grid_pos.y < 0 || neighbour_grid_pos.z < 0 ||
+                    neighbour_grid_pos.x >= int(params.grid_width) || neighbour_grid_pos.y >= int(params.grid_height) || neighbour_grid_pos.z >= int(params.grid_depth)) {
+                    continue; // Continue if neighbour_grid_pos is out of bounds
                 }
-                float dst = distance(pos, positions[neighbour_index]);
-                if (dst > params.smoothing_radius) {
-                    continue;
+
+                uint neighbour_bucket_index = grid_pos_to_bucket_index(neighbour_grid_pos);
+                uint start = bucket_offsets[neighbour_bucket_index];
+                uint end = neighbour_bucket_index + 1 < params.bucket_count ? bucket_offsets[neighbour_bucket_index + 1] : params.particle_count; // End at the next offset if it exists, else end at the end of the particles_by_bucket array (size of particles_by_bucket array is particle_count)
+
+                // Iterate over all particle indices in neighbour_bucket_index
+                for (uint i = start; i < end; i++) {
+
+                    uint neighbour_index = particles_by_bucket[i];
+                    if (particle_index == neighbour_index) { // Particle doesn't exert forces on itself
+                        continue;
+                    }
+                    float dst = distance(pos, positions[neighbour_index]);
+                    if (dst > params.smoothing_radius) {
+                        continue;
+                    }
+                    vec3 neighbour_pos = positions[neighbour_index];
+                    float neighbour_density = densities[neighbour_index];
+                    float neighbour_near_density = near_densities[neighbour_index];
+
+                    vec3 direction = dst == 0 ? vec3(0.0, 1.0, 0.0) : (neighbour_pos - pos) / dst; // Should really be a random direction if dst == 0, but a simple vector like this should work since dst will rarely be 0
+
+                    float shared_pressure = (pressure + density_to_pressure(neighbour_density)) / 2.0;
+                    float shared_near_pressure = (near_pressure + near_density_to_near_pressure(neighbour_near_density)) / 2.0;
+
+                    pressure_force += params.particle_mass / neighbour_density * density_kernel_derivative(dst) * shared_pressure * direction;
+                    pressure_force += params.particle_mass / neighbour_near_density * near_density_kernel_derivative(dst) * shared_near_pressure * direction;
+                        
+                    viscosity_force += params.viscosity * (velocities[neighbour_index] - velocity) * viscosity_kernel(dst) / neighbour_density;
+
                 }
-                vec2 neighbour_pos = positions[neighbour_index];
-                float neighbour_density = densities[neighbour_index];
-                float neighbour_near_density = near_densities[neighbour_index];
-
-                vec2 direction = dst == 0 ? vec2(0.0, 1.0) : (neighbour_pos - pos) / dst; // Should really be a random direction if dst == 0, but a simple vector like this should work since dst will rarely be 0
-
-                float shared_pressure = (pressure + density_to_pressure(neighbour_density)) / 2.0;
-                float shared_near_pressure = (near_pressure + near_density_to_near_pressure(neighbour_near_density)) / 2.0;
-
-                pressure_force += params.particle_mass / neighbour_density * density_kernel_derivative(dst) * shared_pressure * direction;
-                pressure_force += params.particle_mass / neighbour_near_density * near_density_kernel_derivative(dst) * shared_near_pressure * direction;
-                	
-                viscosity_force += params.viscosity * (velocities[neighbour_index] - velocity) * viscosity_kernel(dst) / neighbour_density;
-
             }
         }
     }
 
     pressure_force /= density;
     viscosity_force /= density;
-    vec2 gravity_force = vec2(0, params.gravity);
+    vec3 gravity_force = vec3(0.0, -params.gravity, 0.0);
 
     // Update velocity
     velocities[particle_index] += (pressure_force + viscosity_force + gravity_force) * push_constant.delta;
@@ -183,13 +191,13 @@ void main() {
     // Update position
     positions[particle_index] += velocities[particle_index] * push_constant.delta;
 		
-    // Handle collisions with the edge of the screen. Don't let the particles ever be on the edge though, so add or subtract a small number
+    // Handle collisions with the edge of the bounds. Don't let the particles ever be on the edge though, so add or subtract a small number
     if (positions[particle_index].x <= 0) {
         positions[particle_index].x = 0 + epsilon;
         velocities[particle_index].x *= -1 * params.elasticity;
     }
-    else if (positions[particle_index].x >= params.screen_width) {
-        positions[particle_index].x = params.screen_width - epsilon;
+    else if (positions[particle_index].x >= params.bounds_width) {
+        positions[particle_index].x = params.bounds_width - epsilon;
         velocities[particle_index].x *= -1 * params.elasticity;
     }
         
@@ -197,9 +205,18 @@ void main() {
         positions[particle_index].y = 0 + epsilon ;
         velocities[particle_index].y *= -1 * params.elasticity;
     }
-    else if (positions[particle_index].y >= params.screen_height) {
-        positions[particle_index].y = params.screen_height - epsilon;
+    else if (positions[particle_index].y >= params.bounds_height) {
+        positions[particle_index].y = params.bounds_height - epsilon;
         velocities[particle_index].y *= -1 * params.elasticity;
+    }
+
+    if (positions[particle_index].z <= 0) {
+        positions[particle_index].z = 0 + epsilon ;
+        velocities[particle_index].z *= -1 * params.elasticity;
+    }
+    else if (positions[particle_index].z >= params.bounds_depth) {
+        positions[particle_index].z = params.bounds_depth - epsilon;
+        velocities[particle_index].z *= -1 * params.elasticity;
     }
 
     // Store particle data to texture for rendering
@@ -207,8 +224,8 @@ void main() {
     vec4 particle_info = vec4(
         positions[particle_index].x,
         positions[particle_index].y,
-        length(velocities[particle_index]),
-        0.0 // unused for now
+        positions[particle_index].z,
+        length(velocities[particle_index])
     );
     imageStore(particle_data, pixel_coord, particle_info);
 }

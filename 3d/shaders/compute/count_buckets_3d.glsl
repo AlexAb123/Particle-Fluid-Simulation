@@ -5,11 +5,13 @@ layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
 
 layout(set = 0, binding = 0, std430) restrict buffer Params {
 	uint particle_count;
-    float screen_width;
-    float screen_height;
+    float bounds_width;
+    float bounds_height;
+    float bounds_depth;
     float smoothing_radius;
     uint grid_width;
     uint grid_height;
+    uint grid_depth;
     uint bucket_count;
     float particle_mass; 
     float pressure_multiplier;
@@ -17,7 +19,7 @@ layout(set = 0, binding = 0, std430) restrict buffer Params {
     float target_density;
     float gravity;
     float elasticity;
-    float viscocity;
+    float viscosity;
     uint steps_per_frame;
     uint image_size; 
 }
@@ -32,12 +34,14 @@ layout(set = 0, binding = 2, std430) restrict buffer BucketCounts {
 };
 
 layout(set = 0, binding = 6, std430) restrict buffer Positions {
-    vec2 positions[]; 
+    vec3 positions[]; 
 };
 
-uint pos_to_bucket_index(vec2 pos) { // Returns the bucket index given the position of the particle
-    ivec2 grid_pos = ivec2(pos / params.smoothing_radius);
-    return grid_pos.y * params.grid_width + grid_pos.x; // Flattens grid into a one dimensional line
+uint pos_to_bucket_index(vec3 pos) { // Returns the bucket index given the position of the particle
+    ivec3 grid_pos = ivec3(pos / params.smoothing_radius);
+    return (grid_pos.z * params.grid_width * params.grid_height) +
+            (grid_pos.y * params.grid_width) +
+            grid_pos.x;
 }
 
 void main() {

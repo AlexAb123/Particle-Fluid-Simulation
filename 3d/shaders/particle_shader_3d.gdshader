@@ -10,6 +10,7 @@ void start() {
 	// Set particle size
 	TRANSFORM[0] = vec4(particle_size, 0, 0, 0);
 	TRANSFORM[1] = vec4(0, particle_size, 0, 0);
+	TRANSFORM[2] = vec4(0, 0, particle_size, 0);
 }
 
 void process() {
@@ -19,10 +20,10 @@ void process() {
 
 	vec4 data = texelFetch(particle_data, pixel_coord, 0);
 
-	vec2 pos = data.xy;
+	vec3 pos = data.xyz;
 
 	// Set particle positions
-	TRANSFORM[3].xy = pos;
+	TRANSFORM[3].xyz = pos;
 
-	COLOR = texture(gradient_texture, vec2(data.z/450.0, 0.5));
+	COLOR = texture(gradient_texture, vec2(data.w/450.0, 0.5));
 }

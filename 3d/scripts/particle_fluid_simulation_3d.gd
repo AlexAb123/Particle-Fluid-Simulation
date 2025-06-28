@@ -1,8 +1,8 @@
 extends Node3D
 
 @export var particle_count: int = 1024
-@export var particle_size: float = 1.0/8
-@export var smoothing_radius: float = 50
+@export var particle_size: float = 10
+@export var smoothing_radius: float = 75
 @export var particle_mass: float = 50
 @export var target_density: float = 0.2
 @export var pressure_multiplier: float = 300000
@@ -12,7 +12,7 @@ extends Node3D
 @export var viscosity: float = 50
 @export var steps_per_frame: int = 1
 @export var gradient: Gradient
-@export var bounds: Vector3 = Vector3(1500, 750, 1500)
+@export var bounds: Vector3 = Vector3(1000, 500, 500)
 
 var positions: PackedVector3Array = PackedVector3Array()
 var velocities: PackedVector3Array = PackedVector3Array()
@@ -77,6 +77,8 @@ func _ready():
 	bucket_count = grid_width * grid_height * grid_depth
 	
 	particle_data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAH)
+	
+	print("Buckets: ", bucket_count)
 	
 	for i in range(particle_count):
 		#positions.append(Vector3(randf() * bounds.x, randf() * bounds.y, randf() * bounds.z))

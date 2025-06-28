@@ -79,14 +79,10 @@ func _ready():
 	screen_width = get_viewport_rect().size.x
 	screen_height = get_viewport_rect().size.y
 	
-	print(screen_width)
-	print(screen_height)
-	
 	grid_width = int(ceil(screen_width / smoothing_radius))
 	grid_height = int(ceil(screen_height / smoothing_radius))
 	bucket_count = grid_width * grid_height
 	
-	print(bucket_count)
 	particle_data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAH)
 	
 	for i in range(particle_count):

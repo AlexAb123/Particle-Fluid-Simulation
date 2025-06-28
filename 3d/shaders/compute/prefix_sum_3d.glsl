@@ -5,11 +5,13 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in; // Only one inv
 
 layout(set = 0, binding = 0, std430) restrict buffer Params {
 	uint particle_count;
-    float screen_width;
-    float screen_height;
+    float bounds_width;
+    float bounds_height;
+    float bounds_depth;
     float smoothing_radius;
     uint grid_width;
     uint grid_height;
+    uint grid_depth;
     uint bucket_count;
     float particle_mass; 
     float pressure_multiplier;
@@ -17,7 +19,7 @@ layout(set = 0, binding = 0, std430) restrict buffer Params {
     float target_density;
     float gravity;
     float elasticity;
-    float viscocity;
+    float viscosity;
     uint steps_per_frame;
     uint image_size; 
 }

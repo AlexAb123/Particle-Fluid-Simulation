@@ -185,7 +185,7 @@ void main() {
 
     pressure_force /= density;
     viscosity_force /= density;
-    vec2 gravity_force = vec2(0, params.gravity);
+    vec2 gravity_force = vec2(0.0, params.gravity);
 
     // Update velocity
     velocities[particle_index] += (pressure_force + viscosity_force + mouse_force + gravity_force) * push_constant.delta;

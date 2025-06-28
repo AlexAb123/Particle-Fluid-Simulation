@@ -1,3 +1,7 @@
+MeshInstance3D
+Camera3D
+Area3D
+CollisionShape3D
 Label
 GPUParticles3D
 GPUParticles2D
