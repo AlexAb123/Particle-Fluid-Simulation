@@ -13,12 +13,13 @@ shader_parameter/image_size = 0
 
 [node name="ParticleFluidSimulation3D" type="Node3D"]
 script = ExtResource("1_s30ui")
+particle_count = 10000
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.020411, 0.0258667, -0.00347042)
 process_material = SubResource("ShaderMaterial_s30ui")
 draw_pass_1 = SubResource("QuadMesh_s30ui")
 
-[node name="Label" type="Label" parent="."]
+[node name="FPSCounter" type="Label" parent="."]
 offset_right = 40.0
 offset_bottom = 23.0

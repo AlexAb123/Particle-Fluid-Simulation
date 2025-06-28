@@ -14,19 +14,15 @@ extends Node3D
 @export var gradient: Gradient
 @export var bounds: Vector3 = Vector3(1500, 750, 1500)
 
-var mouse_force_strength: float
-var mouse_force_position: Vector3
-
 var positions: PackedVector3Array = PackedVector3Array()
 var velocities: PackedVector3Array = PackedVector3Array()
 var densities: PackedFloat32Array = PackedFloat32Array()
 var near_densities: PackedFloat32Array = PackedFloat32Array()
 var forces: PackedVector3Array = PackedVector3Array()
 
-var screen_width: float
-var screen_height: float
 var grid_width: int
 var grid_height: int
+var grid_depth: int
 var bucket_count: int
 
 @onready var fps_counter: Label = $FPSCounter
@@ -75,14 +71,15 @@ func _ready():
 	gpu_particles_3d.amount = particle_count
 	gpu_particles_3d.scale = Vector3(0.1, 0.1, 0.1)
 	
-	grid_width = int(ceil(screen_width / smoothing_radius))
-	grid_height = int(ceil(screen_height / smoothing_radius))
-	bucket_count = grid_width * grid_height
+	grid_width = int(ceil(bounds.x / smoothing_radius))
+	grid_height = int(ceil(bounds.y / smoothing_radius))
+	grid_depth = int(ceil(bounds.z / smoothing_radius))
+	bucket_count = grid_width * grid_height * grid_depth
 	
 	particle_data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAH)
 	
 	for i in range(particle_count):
-		#positions.append(Vector3(randf() * screen_width, randf() * screen_height))
+		#positions.append(Vector3(randf() * bounds.x, randf() * bounds.y, randf() * bounds.z))
 		positions.append(Vector3(randf() * bounds.x/4 + bounds.x/2 - bounds.x/8, randf() * bounds.y/4 + bounds.y/2 - bounds.y/8, randf() * bounds.z/4 + bounds.z/2 - bounds.z/8))
 		velocities.append(Vector3(0, 0, 0))
 	
@@ -217,23 +214,25 @@ func _create_uniform(buffer: RID, uniform_type: RenderingDevice.UniformType, bin
 	
 func _create_params_uniform(binding: int) -> RDUniform:
 	var params_bytes := PackedByteArray()
-	params_bytes.resize(68)
+	params_bytes.resize(76)
 	params_bytes.encode_u32(0, particle_count)
-	params_bytes.encode_float(4, screen_width)
-	params_bytes.encode_float(8, screen_height)
-	params_bytes.encode_float(12, smoothing_radius)
-	params_bytes.encode_u32(16, grid_width)
-	params_bytes.encode_u32(20, grid_height)
-	params_bytes.encode_u32(24, bucket_count)
-	params_bytes.encode_float(28, particle_mass)
-	params_bytes.encode_float(32, pressure_multiplier)
-	params_bytes.encode_float(36, near_pressure_multiplier)
-	params_bytes.encode_float(40, target_density)
-	params_bytes.encode_float(44, gravity)
-	params_bytes.encode_float(48, elasticity)
-	params_bytes.encode_float(52, viscosity)
-	params_bytes.encode_u32(56, steps_per_frame)
-	params_bytes.encode_u32(60, image_size)
+	params_bytes.encode_float(4, bounds.x)
+	params_bytes.encode_float(8, bounds.y)
+	params_bytes.encode_float(12, bounds.z)
+	params_bytes.encode_float(16, smoothing_radius)
+	params_bytes.encode_u32(20, grid_width)
+	params_bytes.encode_u32(24, grid_height)
+	params_bytes.encode_u32(28, grid_depth)
+	params_bytes.encode_u32(32, bucket_count)
+	params_bytes.encode_float(36, particle_mass)
+	params_bytes.encode_float(40, pressure_multiplier)
+	params_bytes.encode_float(44, near_pressure_multiplier)
+	params_bytes.encode_float(48, target_density)
+	params_bytes.encode_float(52, gravity)
+	params_bytes.encode_float(56, elasticity)
+	params_bytes.encode_float(60, viscosity)
+	params_bytes.encode_u32(64, steps_per_frame)
+	params_bytes.encode_u32(68, image_size)
 	
 	var params_buffer = rd.storage_buffer_create(params_bytes.size(), params_bytes)
 	return _create_uniform(params_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, binding)
