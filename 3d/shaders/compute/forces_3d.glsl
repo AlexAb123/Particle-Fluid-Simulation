@@ -124,7 +124,7 @@ void main() {
     vec3 pos = positions[particle_index];
     vec3 velocity = velocities[particle_index];
     float density = max(densities[particle_index], epsilon); // Max with epsilon so we dont divide by 0 if density is really small
-    float near_density = near_densities[particle_index];
+    float near_density = max(near_densities[particle_index], epsilon);
 
     float pressure = density_to_pressure(density);
     float near_pressure = near_density_to_near_pressure(near_density);
@@ -163,8 +163,8 @@ void main() {
                         continue;
                     }
                     vec3 neighbour_pos = positions[neighbour_index];
-                    float neighbour_density = densities[neighbour_index];
-                    float neighbour_near_density = near_densities[neighbour_index];
+                    float neighbour_density = max(densities[neighbour_index], epsilon);
+                    float neighbour_near_density = max(near_densities[neighbour_index], epsilon);
 
                     vec3 direction = dst == 0 ? vec3(0.0, 1.0, 0.0) : (neighbour_pos - pos) / dst; // Should really be a random direction if dst == 0, but a simple vector like this should work since dst will rarely be 0
 

@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Particle Fluid Simulation"
-run/main_scene="uid://b0373xlag6mjt"
+run/main_scene="uid://qjeep82n4f7t"
 config/features=PackedStringArray("4.4", "Forward Plus")
 run/max_fps=120
 boot_splash/show_image=false

@@ -14,19 +14,19 @@ void fragment() {
     
     if (pos.x >= 0.0 && pos.y >= 0.0) {
         // Top-right quadrant - Red
-        color = vec3(0.8, 0.0, 0.0);
+        color = vec3(1.0, 0.0, 0.0);
     }
     else if (pos.x < 0.0 && pos.y >= 0.0) {
         // Top-left quadrant - Green
-        color = vec3(0.0, 0.8, 0.0);
+        color = vec3(0.0, 1.0, 0.0);
     }
     else if (pos.x < 0.0 && pos.y < 0.0) {
         // Bottom-left quadrant - Blue
-        color = vec3(0.0, 0.0, 0.8);
+        color = vec3(0.0, 0.0, 1.0);
     }
     else {
         // Bottom-right quadrant - Yellow
-        color = vec3(0.8, 0.5, 0.0);
+        color = vec3(1.0, 1.0, 0.0);
     }
     
     ALBEDO = color;

@@ -78,6 +78,8 @@ func _ready():
 	
 	particle_data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAH)
 	
+	gpu_particles_3d.visibility_aabb = AABB(Vector3(-5000, -5000, -5000), Vector3(10000, 10000, 10000)) # So the particles don't get culled when we don't want them to 
+	
 	print("Buckets: ", bucket_count)
 	
 	for i in range(particle_count):

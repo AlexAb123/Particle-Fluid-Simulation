@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://da51r6nsfo2wd" path="res://3d/scripts/camera.gd" id="4_1s01v"]
 [ext_resource type="Shader" uid="uid://cnx6dlugpmwgp" path="res://3d/shaders/ground_shader.gdshader" id="4_ecwoc"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_ynkks"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7gpfj"]
 shader = ExtResource("1_cjcay")
 shader_parameter/particle_count = 0
 shader_parameter/particle_size = 0.0
@@ -14,8 +14,13 @@ shader_parameter/image_size = 0
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1s01v"]
 vertex_color_use_as_albedo = true
+billboard_mode = 3
+billboard_keep_scale = true
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
 
-[sub_resource type="SphereMesh" id="SphereMesh_1s01v"]
+[sub_resource type="SphereMesh" id="SphereMesh_fkybn"]
 material = SubResource("StandardMaterial3D_1s01v")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1s01v"]
@@ -28,15 +33,20 @@ size = Vector2(2500, 2500)
 
 [node name="ParticleFluidSimulation3D" type="Node3D"]
 script = ExtResource("1_s30ui")
-particle_count = 10000
+particle_count = 4096
+target_density = 0.5
 gradient = ExtResource("2_ynkks")
+bounds = Vector3(500, 250, 250)
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0)
 fixed_fps = 120
-transform_align = 1
-process_material = SubResource("ShaderMaterial_ynkks")
-draw_pass_1 = SubResource("SphereMesh_1s01v")
+process_material = SubResource("ShaderMaterial_7gpfj")
+draw_pass_1 = SubResource("SphereMesh_fkybn")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 250, 5000, 125)
+light_energy = 0.5
 
 [node name="FPSCounter" type="Label" parent="."]
 offset_right = 40.0
