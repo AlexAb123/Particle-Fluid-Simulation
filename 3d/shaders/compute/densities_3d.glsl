@@ -80,9 +80,7 @@ void main() {
     if (particle_index >= params.particle_count) {
         return;
     }
-    if (particle_index >= params.particle_count) {
-        return;
-    }
+    
     vec3 pos = positions[particle_index];
     float density = 0.0;
     float near_density = 0.0;

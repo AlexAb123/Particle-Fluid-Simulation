@@ -53,6 +53,7 @@ void main() {
     }
 
     uint bucket_index = pos_to_bucket_index(positions[particle_index]);
+    
     bucket_indices[particle_index] = bucket_index;
     atomicAdd(bucket_counts[bucket_index], 1); // Increment bucket count for counting sort if this is a valid particle index
 }

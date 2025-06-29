@@ -2,17 +2,18 @@ extends Node3D
 
 @export var particle_count: int = 1024
 @export var particle_size: float = 10
-@export var smoothing_radius: float = 75
-@export var particle_mass: float = 50
-@export var target_density: float = 0.2
-@export var pressure_multiplier: float = 300000
-@export var near_pressure_multiplier: float = 100000
+@export var smoothing_radius: float = 50
+@export var particle_mass: float = 500.0
+@export var target_density: float = 0.1
+@export var pressure_multiplier: float = 100000
+@export var near_pressure_multiplier: float = 50000
 @export var gravity: float = 150
 @export_range(0, 1) var elasticity: float = 0.95
 @export var viscosity: float = 50
 @export var steps_per_frame: int = 1
 @export var gradient: Gradient
-@export var bounds: Vector3 = Vector3(1000, 500, 500)
+@export var bounds: Vector3 = Vector3(500, 250, 250)
+@export var origin: Vector3 = Vector3(-250, 0, -125)
 
 var positions: PackedVector3Array = PackedVector3Array()
 var velocities: PackedVector3Array = PackedVector3Array()
@@ -85,13 +86,14 @@ func _ready():
 	for i in range(particle_count):
 		#positions.append(Vector3(randf() * bounds.x, randf() * bounds.y, randf() * bounds.z))
 		positions.append(Vector3(randf() * bounds.x/4 + bounds.x/2 - bounds.x/8, randf() * bounds.y/4 + bounds.y/2 - bounds.y/8, randf() * bounds.z/4 + bounds.z/2 - bounds.z/8))
-		velocities.append(Vector3(0, 0, 0))
+		velocities.append(Vector3.ZERO)
 	
 	# Particle shader setup
 	process_material = gpu_particles_3d.process_material as ShaderMaterial
 	process_material.set_shader_parameter("particle_count", particle_count)
 	process_material.set_shader_parameter("particle_size", particle_size)
 	process_material.set_shader_parameter("image_size", image_size)
+	process_material.set_shader_parameter("origin", origin)
 	var gradient_texture: GradientTexture1D = GradientTexture1D.new()
 	gradient_texture.gradient = gradient
 	process_material.set_shader_parameter("gradient_texture", gradient_texture)
@@ -108,7 +110,7 @@ func _setup_shaders() -> void:
 	fmt.width = image_size
 	fmt.height = image_size
 	fmt.format = RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT
-	fmt.usage_bits = RenderingDevice.TEXTURE_USAGE_SAMPLING_BIT | RenderingDevice.TEXTURE_USAGE_STORAGE_BIT
+	fmt.usage_bits = RenderingDevice.TEXTURE_USAGE_SAMPLING_BIT | RenderingDevice.TEXTURE_USAGE_STORAGE_BIT | RenderingDevice.TEXTURE_USAGE_CAN_COPY_FROM_BIT
 	var view := RDTextureView.new()
 	particle_data_buffer = rd.texture_create(fmt, view, [particle_data_image.get_data()])
 	particle_data_texture_rd = Texture2DRD.new()
@@ -218,7 +220,7 @@ func _create_uniform(buffer: RID, uniform_type: RenderingDevice.UniformType, bin
 	
 func _create_params_uniform(binding: int) -> RDUniform:
 	var params_bytes := PackedByteArray()
-	params_bytes.resize(76)
+	params_bytes.resize(72)
 	params_bytes.encode_u32(0, particle_count)
 	params_bytes.encode_float(4, bounds.x)
 	params_bytes.encode_float(8, bounds.y)

@@ -44,9 +44,7 @@ void main() { // Optimize this buy implementing a prefix sum algorithm that util
     if (particle_index > 0) { // Only want to use one invocation
         return;
     }
-    if (particle_index >= params.particle_count) {
-        return;
-    }
+
     uint sum = 0;
 
     for (uint i = 0; i < params.bucket_count; i++) {

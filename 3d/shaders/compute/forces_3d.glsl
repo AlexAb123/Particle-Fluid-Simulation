@@ -190,7 +190,7 @@ void main() {
 
     // Update position
     positions[particle_index] += velocities[particle_index] * push_constant.delta;
-		
+
     // Handle collisions with the edge of the bounds. Don't let the particles ever be on the edge though, so add or subtract a small number
     if (positions[particle_index].x <= 0) {
         positions[particle_index].x = 0 + epsilon;
@@ -221,6 +221,7 @@ void main() {
 
     // Store particle data to texture for rendering
     ivec2 pixel_coord = ivec2(particle_index % params.image_size, particle_index / params.image_size);
+    
     vec4 particle_info = vec4(
         positions[particle_index].x,
         positions[particle_index].y,
