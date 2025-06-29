@@ -141,6 +141,7 @@ func _setup_shaders() -> void:
 	particles_by_bucket_buffer = rd.storage_buffer_create(4 * particle_count)
 	
 	var positions_bytes := positions.to_byte_array()
+	
 	positions_buffer = rd.storage_buffer_create(positions_bytes.size(), positions_bytes)
 	var velocities_bytes := velocities.to_byte_array()
 	velocities_buffer = rd.storage_buffer_create(velocities_bytes.size(), velocities_bytes)
