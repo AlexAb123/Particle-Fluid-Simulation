@@ -1,12 +1,12 @@
-GPUParticles3D
 DirectionalLight3D
-OmniLight3D
-WorldEnvironment
 MeshInstance3D
 Camera3D
+Label
+GPUParticles3D
+OmniLight3D
+WorldEnvironment
 Area3D
 CollisionShape3D
-Label
 GPUParticles2D
 MultiMeshInstance2D
 Tree

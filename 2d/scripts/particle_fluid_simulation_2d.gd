@@ -22,7 +22,6 @@ var positions: PackedVector2Array = PackedVector2Array()
 var velocities: PackedVector2Array = PackedVector2Array()
 var densities: PackedFloat32Array = PackedFloat32Array()
 var near_densities: PackedFloat32Array = PackedFloat32Array()
-var forces: PackedVector2Array = PackedVector2Array()
 
 var screen_width: float
 var screen_height: float
@@ -74,7 +73,6 @@ func _ready():
 	
 	image_size = int(ceil(sqrt(particle_count)))
 	gpu_particles_2d.amount = particle_count
-	gpu_particles_2d.scale = Vector2(0.1, 0.1)
 	
 	screen_width = get_viewport_rect().size.x
 	screen_height = get_viewport_rect().size.y

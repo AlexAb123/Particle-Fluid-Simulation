@@ -175,7 +175,6 @@ void main() {
                     pressure_force += params.particle_mass / neighbour_near_density * near_density_kernel_derivative(dst) * shared_near_pressure * direction;
                         
                     viscosity_force += params.viscosity * (velocities[neighbour_index] - velocity) * viscosity_kernel(dst) / neighbour_density;
-
                 }
             }
         }
@@ -228,5 +227,7 @@ void main() {
         positions[particle_index].z,
         length(velocities[particle_index])
     );
+
+    barrier();
     imageStore(particle_data, pixel_coord, particle_info);
 }

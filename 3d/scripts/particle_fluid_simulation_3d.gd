@@ -15,11 +15,10 @@ extends Node3D
 @export var bounds: Vector3 = Vector3(500, 250, 250)
 @export var origin: Vector3 = Vector3(-250, 0, -125)
 
-var positions: PackedVector3Array = PackedVector3Array()
-var velocities: PackedVector3Array = PackedVector3Array()
+var positions: PackedVector4Array = PackedVector4Array()
+var velocities: PackedVector4Array = PackedVector4Array()
 var densities: PackedFloat32Array = PackedFloat32Array()
 var near_densities: PackedFloat32Array = PackedFloat32Array()
-var forces: PackedVector3Array = PackedVector3Array()
 
 var grid_width: int
 var grid_height: int
@@ -84,9 +83,9 @@ func _ready():
 	print("Buckets: ", bucket_count)
 	
 	for i in range(particle_count):
-		#positions.append(Vector3(randf() * bounds.x, randf() * bounds.y, randf() * bounds.z))
-		positions.append(Vector3(randf() * bounds.x/4 + bounds.x/2 - bounds.x/8, randf() * bounds.y/4 + bounds.y/2 - bounds.y/8, randf() * bounds.z/4 + bounds.z/2 - bounds.z/8))
-		velocities.append(Vector3.ZERO)
+		#positions.append(Vector4(randf() * bounds.x, randf() * bounds.y, randf() * bounds.z, 0))
+		positions.append(Vector4(randf() * bounds.x/4 + bounds.x/2 - bounds.x/8, randf() * bounds.y/4 + bounds.y/2 - bounds.y/8, randf() * bounds.z/4 + bounds.z/2 - bounds.z/8, 0))
+		velocities.append(Vector4.ZERO)
 	
 	# Particle shader setup
 	process_material = gpu_particles_3d.process_material as ShaderMaterial
@@ -279,9 +278,6 @@ func _run_compute_pipeline_push_constant(pipeline: RID, uniform_set: RID, thread
 
 func _process(delta: float) -> void:
 	fps_counter.text = str(int(Engine.get_frames_per_second())) + " fps"
-	var output_bytes := rd.buffer_get_data(positions_buffer)
-	var output := output_bytes.to_float32_array()
-	print("Output: ", output)
 	for i in range(steps_per_frame):
 		_simulation_step(delta)
 		
