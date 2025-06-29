@@ -61,7 +61,7 @@ float density_kernel(float dst) {
 	if (dst >= params.smoothing_radius) {
 		return 0;
     }
-	float factor = 6.0 / (pow(params.smoothing_radius, 4) * PI) ;
+	float factor = 15.0 / (pow(params.smoothing_radius, 5) * 2.0 * PI) ;
 	return pow(params.smoothing_radius - dst, 2) * factor;
 }
 
@@ -69,7 +69,7 @@ float near_density_kernel(float dst) {
     if (dst >= params.smoothing_radius) {
         return 0;
 	}
-    float factor = 10.0 / (pow(params.smoothing_radius, 5) * PI);
+    float factor = 15.0 / (pow(params.smoothing_radius, 6) * PI);
     return pow(params.smoothing_radius - dst, 3) * factor;
 }
 
