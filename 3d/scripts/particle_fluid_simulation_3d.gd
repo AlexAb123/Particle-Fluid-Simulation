@@ -110,7 +110,7 @@ func _setup_shaders() -> void:
 	fmt.width = image_size
 	fmt.height = image_size
 	fmt.format = RenderingDevice.DATA_FORMAT_R16G16B16A16_SFLOAT
-	fmt.usage_bits = RenderingDevice.TEXTURE_USAGE_SAMPLING_BIT | RenderingDevice.TEXTURE_USAGE_STORAGE_BIT | RenderingDevice.TEXTURE_USAGE_CAN_COPY_FROM_BIT
+	fmt.usage_bits = RenderingDevice.TEXTURE_USAGE_SAMPLING_BIT | RenderingDevice.TEXTURE_USAGE_STORAGE_BIT
 	var view := RDTextureView.new()
 	particle_data_buffer = rd.texture_create(fmt, view, [particle_data_image.get_data()])
 	particle_data_texture_rd = Texture2DRD.new()
@@ -141,7 +141,6 @@ func _setup_shaders() -> void:
 	particles_by_bucket_buffer = rd.storage_buffer_create(4 * particle_count)
 	
 	var positions_bytes := positions.to_byte_array()
-	
 	positions_buffer = rd.storage_buffer_create(positions_bytes.size(), positions_bytes)
 	var velocities_bytes := velocities.to_byte_array()
 	velocities_buffer = rd.storage_buffer_create(velocities_bytes.size(), velocities_bytes)
@@ -250,6 +249,7 @@ func _simulation_step(delta: float) -> void:
 	_run_compute_pipeline(prefix_sum_pipeline, prefix_sum_uniform_set, 1)
 	_run_compute_pipeline(scatter_pipeline, scatter_uniform_set, ceil(particle_count/1024.0))
 	_run_compute_pipeline(densities_pipeline, densities_uniform_set, ceil(particle_count/1024.0))
+
 	_run_compute_pipeline_push_constant(forces_pipeline, forces_uniform_set, ceil(particle_count/1024.0), [delta, 0.0, 0.0, 0.0])
 	
 func _create_compute_shader(shader_file: Resource) -> RID:
@@ -279,6 +279,9 @@ func _run_compute_pipeline_push_constant(pipeline: RID, uniform_set: RID, thread
 
 func _process(delta: float) -> void:
 	fps_counter.text = str(int(Engine.get_frames_per_second())) + " fps"
+	var output_bytes := rd.buffer_get_data(positions_buffer)
+	var output := output_bytes.to_float32_array()
+	print("Output: ", output)
 	for i in range(steps_per_frame):
 		_simulation_step(delta)
 		
