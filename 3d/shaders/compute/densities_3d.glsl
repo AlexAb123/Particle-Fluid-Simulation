@@ -1,7 +1,7 @@
 #[compute]
 #version 450
 
-layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
+layout(local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
 
 layout(set = 0, binding = 0, std430) restrict buffer Params {
 	uint particle_count;
@@ -21,7 +21,10 @@ layout(set = 0, binding = 0, std430) restrict buffer Params {
     float elasticity;
     float viscosity;
     uint steps_per_frame;
-    uint image_size; 
+    uint image_size;
+    float density_kernel_factor;
+    float near_density_kernel_factor;
+    float viscosity_kernel_factor;
 }
 params;
 
@@ -61,16 +64,14 @@ float density_kernel(float dst) {
 	if (dst >= params.smoothing_radius) {
 		return 0;
     }
-	float factor = 15.0 / (pow(params.smoothing_radius, 5) * 2.0 * PI) ;
-	return pow(params.smoothing_radius - dst, 2) * factor;
+	return pow(params.smoothing_radius - dst, 2) * params.density_kernel_factor;
 }
 
 float near_density_kernel(float dst) {
     if (dst >= params.smoothing_radius) {
         return 0;
 	}
-    float factor = 15.0 / (pow(params.smoothing_radius, 6) * PI);
-    return pow(params.smoothing_radius - dst, 3) * factor;
+    return pow(params.smoothing_radius - dst, 3) * params.near_density_kernel_factor;
 }
 
 void main() {

@@ -1,14 +1,14 @@
-DirectionalLight3D
 MeshInstance3D
+WorldEnvironment
+MultiMeshInstance3D
 Camera3D
 Label
+DirectionalLight3D
 GPUParticles3D
 OmniLight3D
-WorldEnvironment
 Area3D
 CollisionShape3D
 GPUParticles2D
 MultiMeshInstance2D
 Tree
 TextureRect
-CanvasLayer

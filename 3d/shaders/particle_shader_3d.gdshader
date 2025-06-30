@@ -22,13 +22,8 @@ void process() {
 
 	vec3 pos = data.xyz;
 	
-
-
-	// Set particle positions
+	// Set particle position
 	TRANSFORM[3].xyz = origin + pos;
 
 	COLOR = texture(gradient_texture, vec2(data.w/450.0, 0.5));
-	if (pos == vec3(0,0,0)) {
-		COLOR = vec4(1, 0, 0, 1);
-	}
 }

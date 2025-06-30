@@ -1,0 +1,34 @@
+[gd_scene load_steps=7 format=3 uid="uid://mri7qt1dachx"]
+
+[ext_resource type="Script" uid="uid://b86qyi0h5e8km" path="res://3d/scripts/screen_space_rendering.gd" id="1_edfdb"]
+[ext_resource type="Shader" uid="uid://cpga1orc0jhcn" path="res://3d/shaders/screen_space_rendering.gdshader" id="2_lwwyf"]
+[ext_resource type="Script" uid="uid://da51r6nsfo2wd" path="res://3d/scripts/camera.gd" id="3_402sr"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lwwyf"]
+render_priority = 0
+shader = ExtResource("2_lwwyf")
+shader_parameter/particle_count = 0
+shader_parameter/particle_size = 0.0
+shader_parameter/image_size = 0
+shader_parameter/origin = Vector3(0, 0, 0)
+
+[sub_resource type="QuadMesh" id="QuadMesh_lwwyf"]
+material = SubResource("ShaderMaterial_lwwyf")
+
+[sub_resource type="MultiMesh" id="MultiMesh_402sr"]
+mesh = SubResource("QuadMesh_lwwyf")
+
+[node name="ScreenSpaceRendering" type="Node3D"]
+script = ExtResource("1_edfdb")
+
+[node name="FPSCounter" type="Label" parent="."]
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
+script = ExtResource("3_402sr")
+speed = 1.0
+
+[node name="MultiMeshInstance3D" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("MultiMesh_402sr")

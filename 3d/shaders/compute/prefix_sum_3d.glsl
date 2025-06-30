@@ -21,7 +21,10 @@ layout(set = 0, binding = 0, std430) restrict buffer Params {
     float elasticity;
     float viscosity;
     uint steps_per_frame;
-    uint image_size; 
+    uint image_size;
+    float density_kernel_factor;
+    float near_density_kernel_factor;
+    float viscosity_kernel_factor;
 }
 params;
 

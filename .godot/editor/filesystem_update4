@@ -1,11 +1,9 @@
-res://3d/scenes/particle_fluid_simulation_3d.tscn
-res://3d/shaders/particle_shader_3d.gdshader
+res://3d/scenes/screen_space_rendering.tscn
 res://assets/gradient.tres
-res://3d/shaders/ground_shader.gdshader
-res://2d/shaders/particle_shader_2d.gdshader
+res://3d/shaders/particle_shader_3d.gdshader
+res://3d/shaders/screen_space_rendering.gdshader
+res://3d/scenes/particle_fluid_simulation_3d.tscn
+res://3d/scripts/screen_space_rendering.gd
 res://2d/scenes/particle_fluid_simulation_2d.tscn
 res://3d/scripts/particle_fluid_simulation_3d.gd
-res://3d_old/shaders/particle_shader_3d.gdshader
-res://3d_old/shaders/ground_shader.gdshader
-res://2d/scripts/particle_fluid_simulation_2d.gd
-res://a.tscn
+res://3d/shaders/ground_shader.gdshader

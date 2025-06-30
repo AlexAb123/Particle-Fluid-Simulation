@@ -15,6 +15,12 @@ extends Node3D
 @export var bounds: Vector3 = Vector3(500, 250, 250)
 @export var origin: Vector3 = Vector3(-250, 0, -125)
 
+var workgroup_size: int = 32
+
+var density_kernel_factor: float = 15.0 / (pow(smoothing_radius, 5) * 2.0 * PI)
+var near_density_kernel_factor: float = 15.0 / (pow(smoothing_radius, 6) * PI)
+var viscosity_kernel_factor: float = 315.0 / (pow(smoothing_radius, 9) * 64.0 * PI)
+
 var positions: PackedVector4Array = PackedVector4Array()
 var velocities: PackedVector4Array = PackedVector4Array()
 var densities: PackedFloat32Array = PackedFloat32Array()
@@ -69,7 +75,6 @@ func _ready():
 	
 	image_size = int(ceil(sqrt(particle_count)))
 	gpu_particles_3d.amount = particle_count
-	gpu_particles_3d.scale = Vector3(0.1, 0.1, 0.1)
 	
 	grid_width = int(ceil(bounds.x / smoothing_radius))
 	grid_height = int(ceil(bounds.y / smoothing_radius))
@@ -79,8 +84,6 @@ func _ready():
 	particle_data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAH)
 	
 	gpu_particles_3d.visibility_aabb = AABB(Vector3(-5000, -5000, -5000), Vector3(10000, 10000, 10000)) # So the particles don't get culled when we don't want them to 
-	
-	print("Buckets: ", bucket_count)
 	
 	for i in range(particle_count):
 		#positions.append(Vector4(randf() * bounds.x, randf() * bounds.y, randf() * bounds.z, 0))
@@ -219,7 +222,7 @@ func _create_uniform(buffer: RID, uniform_type: RenderingDevice.UniformType, bin
 	
 func _create_params_uniform(binding: int) -> RDUniform:
 	var params_bytes := PackedByteArray()
-	params_bytes.resize(72)
+	params_bytes.resize(84)
 	params_bytes.encode_u32(0, particle_count)
 	params_bytes.encode_float(4, bounds.x)
 	params_bytes.encode_float(8, bounds.y)
@@ -238,18 +241,20 @@ func _create_params_uniform(binding: int) -> RDUniform:
 	params_bytes.encode_float(60, viscosity)
 	params_bytes.encode_u32(64, steps_per_frame)
 	params_bytes.encode_u32(68, image_size)
+	params_bytes.encode_float(72, density_kernel_factor)
+	params_bytes.encode_float(76, near_density_kernel_factor)
+	params_bytes.encode_float(80, viscosity_kernel_factor)
 	
 	var params_buffer = rd.storage_buffer_create(params_bytes.size(), params_bytes)
 	return _create_uniform(params_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, binding)
 	
 func _simulation_step(delta: float) -> void:
-	_run_compute_pipeline(clear_bucket_counts_pipeline, clear_bucket_counts_uniform_set, ceil(bucket_count/1024.0))
-	_run_compute_pipeline(count_buckets_pipeline, count_buckets_uniform_set, ceil(particle_count/1024.0))
+	_run_compute_pipeline(clear_bucket_counts_pipeline, clear_bucket_counts_uniform_set, ceil(bucket_count/float(workgroup_size)))
+	_run_compute_pipeline(count_buckets_pipeline, count_buckets_uniform_set, ceil(particle_count/float(workgroup_size)))
 	_run_compute_pipeline(prefix_sum_pipeline, prefix_sum_uniform_set, 1)
-	_run_compute_pipeline(scatter_pipeline, scatter_uniform_set, ceil(particle_count/1024.0))
-	_run_compute_pipeline(densities_pipeline, densities_uniform_set, ceil(particle_count/1024.0))
-
-	_run_compute_pipeline_push_constant(forces_pipeline, forces_uniform_set, ceil(particle_count/1024.0), [delta, 0.0, 0.0, 0.0])
+	_run_compute_pipeline(scatter_pipeline, scatter_uniform_set, ceil(particle_count/float(workgroup_size)))
+	_run_compute_pipeline(densities_pipeline, densities_uniform_set, ceil(particle_count/float(workgroup_size)))
+	_run_compute_pipeline_push_constant(forces_pipeline, forces_uniform_set, ceil(particle_count/float(workgroup_size)), [delta, 0.0, 0.0, 0.0])
 	
 func _create_compute_shader(shader_file: Resource) -> RID:
 	var shader_spirv: RDShaderSPIRV = shader_file.get_spirv()

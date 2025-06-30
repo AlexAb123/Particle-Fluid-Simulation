@@ -81,8 +81,6 @@ func _ready():
 	grid_height = int(ceil(screen_height / smoothing_radius))
 	bucket_count = grid_width * grid_height
 	
-	particle_data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAH)
-	
 	for i in range(particle_count):
 		#positions.append(Vector2(randf() * screen_width, randf() * screen_height))
 		positions.append(Vector2(randf() * screen_width/4 + screen_width/2 - screen_width/8, randf() * screen_height/4 + screen_height/2 - screen_height/8))
@@ -114,6 +112,7 @@ func _setup_shaders() -> void:
 	rd = RenderingServer.get_rendering_device()
 	
 	# Connect compute shader to particle shader
+	particle_data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAH)
 	var fmt := RDTextureFormat.new()
 	fmt.width = image_size
 	fmt.height = image_size
@@ -228,7 +227,7 @@ func _create_uniform(buffer: RID, uniform_type: RenderingDevice.UniformType, bin
 	
 func _create_params_uniform(binding: int) -> RDUniform:
 	var params_bytes := PackedByteArray()
-	params_bytes.resize(68)
+	params_bytes.resize(64)
 	params_bytes.encode_u32(0, particle_count)
 	params_bytes.encode_float(4, screen_width)
 	params_bytes.encode_float(8, screen_height)
