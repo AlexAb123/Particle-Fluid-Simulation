@@ -13,7 +13,7 @@ extends Node3D
 @export var steps_per_frame: int = 1
 @export var gradient: Gradient
 @export var bounds: Vector3 = Vector3(500, 250, 250)
-@export var origin: Vector3 = Vector3(0, 0, 0)
+@export var origin: Vector3 = Vector3(-250, 0, -125)
 
 var workgroup_size: int = 32
 

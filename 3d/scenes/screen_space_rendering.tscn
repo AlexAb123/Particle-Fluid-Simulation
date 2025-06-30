@@ -25,7 +25,7 @@ offset_right = 40.0
 offset_bottom = 23.0
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 125, 500)
 script = ExtResource("3_402sr")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
