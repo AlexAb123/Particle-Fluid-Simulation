@@ -31,10 +31,12 @@ var grid_height: int
 var grid_depth: int
 var bucket_count: int
 
-@onready var fps_counter: Label = $FPSCounter
-@onready var mesh_instance_3d: MeshInstance3D = $MeshInstance3D
-var process_material: ShaderMaterial
+@onready var fps_counter: Label = $CanvasLayer/FPSCounter
+@onready var sub_viewport: SubViewport = $SubViewport
+@onready var mesh_instance_3d: MeshInstance3D = $SubViewport/MeshInstance3D
+@onready var color_rect: ColorRect = $CanvasLayer/ColorRect
 
+var process_material: ShaderMaterial
 var particle_data_image: Image
 var particle_data_texture_rd: Texture2DRD
 var particle_data_buffer : RID

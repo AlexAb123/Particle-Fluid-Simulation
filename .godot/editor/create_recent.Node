@@ -1,3 +1,7 @@
+BackBufferCopy
+SubViewport
+ColorRect
+CanvasLayer
 MeshInstance3D
 WorldEnvironment
 MultiMeshInstance3D
@@ -9,6 +13,3 @@ OmniLight3D
 Area3D
 CollisionShape3D
 GPUParticles2D
-MultiMeshInstance2D
-Tree
-TextureRect
