@@ -156,9 +156,9 @@ void main() {
                 uint end = neighbour_bucket_index + 1 < params.bucket_count ? bucket_offsets[neighbour_bucket_index + 1] : params.particle_count; // End at the next offset if it exists, else end at the end of the particles_by_bucket array (size of particles_by_bucket array is particle_count)
 
                 // Iterate over all particle indices in neighbour_bucket_index
-                for (uint sorted_neighbour_index = start; sorted_neighbour_index < end; sorted_neighbour_index++) {
+                for (uint neighbour_index = start; neighbour_index < end; neighbour_index++) {
 
-                    if (particle_index == sorted_neighbour_index) { // Particle doesn't exert forces on itself
+                    if (particle_index == neighbour_index) { // Particle doesn't exert forces on itself
                         continue;
                     }
                     float dst = distance(pos, positions[neighbour_index]);

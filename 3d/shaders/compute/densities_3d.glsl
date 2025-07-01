@@ -107,9 +107,7 @@ void main() {
                 uint end = neighbour_bucket_index + 1 < params.bucket_count ? bucket_offsets[neighbour_bucket_index + 1] : params.particle_count; // End at the next offset if it exists, else end at the end of the particles_by_bucket array (size of particles_by_bucket array is particle_count)
 
                 // Iterate over all particle indices in neighbour_bucket_index
-                for (uint i = start; i < end; i++) {
-
-                    uint neighbour_index = particles_by_bucket[i];
+                for (uint neighbour_index = start; neighbour_index < end; neighbour_index++) {
 
                     // Density calulations
                     float dst = distance(pos, positions[neighbour_index]);
