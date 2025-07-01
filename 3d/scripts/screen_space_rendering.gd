@@ -20,7 +20,7 @@ extends Node3D
 var mouse_force_strength: float
 var mouse_position: Vector3
 
-var workgroup_size: int = 32
+var workgroup_size: int = 256
 
 var density_kernel_factor: float = 15.0 / (pow(smoothing_radius, 5) * 2.0 * PI)
 var near_density_kernel_factor: float = 15.0 / (pow(smoothing_radius, 6) * PI)
@@ -279,6 +279,7 @@ func _create_params_uniform(binding: int) -> RDUniform:
 	var params_buffer = rd.storage_buffer_create(params_bytes.size(), params_bytes)
 	return _create_uniform(params_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, binding)
 	
+	
 func _simulation_step(delta: float) -> void:
 	_run_compute_pipeline(clear_bucket_counts_pipeline, clear_bucket_counts_uniform_set, ceil(bucket_count/float(workgroup_size)))
 	_run_compute_pipeline(count_buckets_pipeline, count_buckets_uniform_set, ceil(particle_count/float(workgroup_size)))
@@ -286,7 +287,15 @@ func _simulation_step(delta: float) -> void:
 	_run_compute_pipeline(scatter_pipeline, scatter_uniform_set, ceil(particle_count/float(workgroup_size)))
 	_run_compute_pipeline(densities_pipeline, densities_uniform_set, ceil(particle_count/float(workgroup_size)))
 	_run_compute_pipeline_push_constant(forces_pipeline, forces_uniform_set, ceil(particle_count/float(workgroup_size)), [delta, mouse_force_strength, mouse_position.x, mouse_position.y, mouse_position.z, 0.0, 0.0, 0.0])
-	
+
+	#rd.capture_timestamp("start")
+	## Compute shader dispatch to time
+	#rd.capture_timestamp("end")
+	#var start_time = rd.get_captured_timestamp_gpu_time(0)
+	#var end_time = rd.get_captured_timestamp_gpu_time(1)
+	#var gpu_time_ns = end_time - start_time
+	#print("Compute shader took: ", gpu_time_ns / 1000000.0, " ms")
+
 func _create_compute_shader(shader_file: Resource) -> RID:
 	var shader_spirv: RDShaderSPIRV = shader_file.get_spirv()
 	return rd.shader_create_from_spirv(shader_spirv)

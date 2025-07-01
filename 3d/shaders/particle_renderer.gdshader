@@ -9,6 +9,7 @@ uniform int image_size;
 uniform vec3 origin;
 varying vec4 data;
 varying vec3 world_pos;
+
 void vertex() {
 	int index = int(VERTEX.x);
 	VERTEX.x = float(index);
@@ -33,8 +34,7 @@ void fragment() {
 	float depth = (distance(CAMERA_POSITION_WORLD, world_pos) - 50.0) / 300.0;
 
 	ALBEDO = vec3(depth-0.5, 0, 0);
-	ALPHA = 0.1; // ALPHA * number of overlapping particles = thickness in the next shaders
-
+	ALPHA = 0.05; // ALPHA * number of overlapping particles = thickness in the next shaders
 }
 
 //void light() {

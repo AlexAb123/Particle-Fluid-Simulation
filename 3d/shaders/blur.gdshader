@@ -1,6 +1,8 @@
 shader_type canvas_item;
 
-uniform sampler2D screen_texture : hint_screen_texture, repeat_disable, filter_nearest;
+uniform sampler2D depth_map: repeat_disable;
+uniform sampler2D normal_map: repeat_disable;
+uniform sampler2D thickness_map: repeat_disable;
 
 void vertex() {
 	// Called for every vertex the material is visible on.
@@ -8,11 +10,10 @@ void vertex() {
 
 void fragment() {
 	// Called for every pixel the material is visible on.
-	
+
 	if (COLOR == vec4(0, 0, 0, 0)) discard;
-	if (COLOR.a < 0.1) COLOR = vec4(0,0,1,1);
 	float thickness = COLOR.a;
-	
+
 }
 
 //void light() {
