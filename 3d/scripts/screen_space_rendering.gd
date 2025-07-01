@@ -124,8 +124,8 @@ func _mesh_setup():
 	
 func _input(event):
 	if event is InputEventMouseMotion:
-		#mouse_position = main_camera.global_position -main_camera.transform.basis.z.normalized() * 100;
-		mouse_position = origin + bounds
+		mouse_position = -origin + main_camera.global_position -main_camera.transform.basis.z.normalized() * 300;
+		#mouse_position = bounds/2
 	elif event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			mouse_force_strength = int(event.pressed) * mouse_force_multiplier
