@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://mri7qt1dachx"]
+[gd_scene load_steps=11 format=3 uid="uid://mri7qt1dachx"]
 
 [ext_resource type="Script" uid="uid://b86qyi0h5e8km" path="res://3d/scripts/screen_space_rendering.gd" id="1_edfdb"]
 [ext_resource type="Gradient" uid="uid://63hsra8pvfe1" path="res://assets/gradient.tres" id="2_402sr"]
@@ -12,6 +12,8 @@ shader = ExtResource("4_mipmy")
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_mipmy"]
 viewport_path = NodePath("SubViewport")
+
+[sub_resource type="World3D" id="World3D_mipmy"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_mipmy"]
 render_priority = 0
@@ -36,6 +38,7 @@ script = ExtResource("3_402sr")
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="TextureRect" type="TextureRect" parent="CanvasLayer"]
+visible = false
 material = SubResource("ShaderMaterial_uhi6l")
 anchors_preset = 15
 anchor_right = 1.0
@@ -49,6 +52,7 @@ offset_right = 40.0
 offset_bottom = 23.0
 
 [node name="SubViewport" type="SubViewport" parent="."]
+world_3d = SubResource("World3D_mipmy")
 transparent_bg = true
 render_target_update_mode = 4
 
