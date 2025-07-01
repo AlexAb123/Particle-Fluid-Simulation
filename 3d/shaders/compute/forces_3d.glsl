@@ -25,6 +25,7 @@ layout(set = 0, binding = 0, std430) restrict buffer Params {
     float density_kernel_factor;
     float near_density_kernel_factor;
     float viscosity_kernel_factor;
+    float mouse_force_radius;
 }
 params;
 
@@ -56,6 +57,10 @@ layout(binding = 10, rgba16f) uniform image2D particle_data;
 
 layout(push_constant, std430) uniform PushConstant {
     float delta;
+    float mouse_force_strength;
+    float mouse_pos_x;
+    float mouse_pos_y;
+    float mouse_pos_z;
     float pad1;
     float pad2;
     float pad3;
@@ -179,12 +184,19 @@ void main() {
         }
     }
 
+    vec3 mouse_force = vec3(0.0);
+    vec3 mouse_offset = vec3(push_constant.mouse_pos_x, push_constant.mouse_pos_y, push_constant.mouse_pos_z) - pos;
+    if (length(mouse_offset) < params.mouse_force_radius) {
+        vec3 mouse_dir = normalize(mouse_offset);
+        mouse_force = mouse_dir * push_constant.mouse_force_strength / density;
+    }
+
     pressure_force /= density;
     viscosity_force /= density;
     vec3 gravity_force = vec3(0.0, -params.gravity, 0.0);
 
     // Update velocity
-    velocities[particle_index] += (pressure_force + viscosity_force + gravity_force) * push_constant.delta;
+    velocities[particle_index] += (pressure_force + viscosity_force + mouse_force + gravity_force) * push_constant.delta;
 
     // Update position
     positions[particle_index] += velocities[particle_index] * push_constant.delta;

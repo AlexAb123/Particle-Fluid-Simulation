@@ -1,7 +1,7 @@
 extends Node3D
 
-@export var particle_count: int = 1024
-@export var particle_size: float = 10
+@export var particle_count: int = 4096
+@export var particle_size: float = 25
 @export var smoothing_radius: float = 50
 @export var particle_mass: float = 500.0
 @export var target_density: float = 0.1
@@ -9,11 +9,16 @@ extends Node3D
 @export var near_pressure_multiplier: float = 50000
 @export var gravity: float = 150
 @export_range(0, 1) var elasticity: float = 0.95
-@export var viscosity: float = 50
+@export var viscosity: float = 100
 @export var steps_per_frame: int = 1
 @export var gradient: Gradient
 @export var bounds: Vector3 = Vector3(500, 250, 250)
 @export var origin: Vector3 = Vector3(-250, 0, -125)
+@export var mouse_force_multiplier: float = 200
+@export var mouse_force_radius: float = 150
+
+var mouse_force_strength: float
+var mouse_position: Vector3
 
 var workgroup_size: int = 32
 
@@ -34,7 +39,6 @@ var bucket_count: int
 @onready var fps_counter: Label = $CanvasLayer/FPSCounter
 @onready var sub_viewport: SubViewport = $SubViewport
 @onready var mesh_instance_3d: MeshInstance3D = $SubViewport/MeshInstance3D
-@onready var color_rect: ColorRect = $CanvasLayer/ColorRect
 
 var process_material: ShaderMaterial
 var particle_data_image: Image
@@ -84,6 +88,9 @@ func _ready():
 	
 	particle_data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAH)
 	
+	sub_viewport.size = get_viewport().get_visible_rect().size
+	get_viewport().transparent_bg = true
+	
 	for i in range(particle_count):
 		#positions.append(Vector4(randf() * bounds.x, randf() * bounds.y, randf() * bounds.z, 0))
 		positions.append(Vector4(randf() * bounds.x/4 + bounds.x/2 - bounds.x/8, randf() * bounds.y/4 + bounds.y/2 - bounds.y/8, randf() * bounds.z/4 + bounds.z/2 - bounds.z/8, 0))
@@ -114,6 +121,16 @@ func _mesh_setup():
 	var gradient_texture: GradientTexture1D = GradientTexture1D.new()
 	gradient_texture.gradient = gradient
 	process_material.set_shader_parameter("gradient_texture", gradient_texture)
+	
+func _input(event):
+	if event is InputEventMouseMotion:
+		#mouse_position = main_camera.global_position -main_camera.transform.basis.z.normalized() * 100;
+		mouse_position = origin + bounds
+	elif event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			mouse_force_strength = int(event.pressed) * mouse_force_multiplier
+		if event.button_index == MOUSE_BUTTON_RIGHT:
+			mouse_force_strength = -1 * int(event.pressed) * mouse_force_multiplier
 	
 func _setup_shaders() -> void:
 	
@@ -235,7 +252,7 @@ func _create_uniform(buffer: RID, uniform_type: RenderingDevice.UniformType, bin
 	
 func _create_params_uniform(binding: int) -> RDUniform:
 	var params_bytes := PackedByteArray()
-	params_bytes.resize(84)
+	params_bytes.resize(88)
 	params_bytes.encode_u32(0, particle_count)
 	params_bytes.encode_float(4, bounds.x)
 	params_bytes.encode_float(8, bounds.y)
@@ -257,6 +274,7 @@ func _create_params_uniform(binding: int) -> RDUniform:
 	params_bytes.encode_float(72, density_kernel_factor)
 	params_bytes.encode_float(76, near_density_kernel_factor)
 	params_bytes.encode_float(80, viscosity_kernel_factor)
+	params_bytes.encode_float(84, mouse_force_radius)
 	
 	var params_buffer = rd.storage_buffer_create(params_bytes.size(), params_bytes)
 	return _create_uniform(params_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, binding)
@@ -267,7 +285,7 @@ func _simulation_step(delta: float) -> void:
 	_run_compute_pipeline(prefix_sum_pipeline, prefix_sum_uniform_set, 1)
 	_run_compute_pipeline(scatter_pipeline, scatter_uniform_set, ceil(particle_count/float(workgroup_size)))
 	_run_compute_pipeline(densities_pipeline, densities_uniform_set, ceil(particle_count/float(workgroup_size)))
-	_run_compute_pipeline_push_constant(forces_pipeline, forces_uniform_set, ceil(particle_count/float(workgroup_size)), [delta, 0.0, 0.0, 0.0])
+	_run_compute_pipeline_push_constant(forces_pipeline, forces_uniform_set, ceil(particle_count/float(workgroup_size)), [delta, mouse_force_strength, mouse_position.x, mouse_position.y, mouse_position.z, 0.0, 0.0, 0.0])
 	
 func _create_compute_shader(shader_file: Resource) -> RID:
 	var shader_spirv: RDShaderSPIRV = shader_file.get_spirv()
@@ -298,6 +316,13 @@ func _process(delta: float) -> void:
 	fps_counter.text = str(int(Engine.get_frames_per_second())) + " fps"
 	for i in range(steps_per_frame):
 		_simulation_step(delta)
+	_update_cameras()
+		
+@onready var main_camera: Camera3D = $Camera3D
+@onready var camera1: Camera3D = $SubViewport/Camera3D
+func _update_cameras() -> void:
+	camera1.global_transform = main_camera.global_transform
+	
 		
 func _exit_tree() -> void:
 	rd.free_rid(bucket_indices_buffer)

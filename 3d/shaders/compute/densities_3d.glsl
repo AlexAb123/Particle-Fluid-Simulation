@@ -25,6 +25,7 @@ layout(set = 0, binding = 0, std430) restrict buffer Params {
     float density_kernel_factor;
     float near_density_kernel_factor;
     float viscosity_kernel_factor;
+    float mouse_force_radius;
 }
 params;
 
