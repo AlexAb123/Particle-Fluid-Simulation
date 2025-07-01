@@ -4,12 +4,13 @@
 [ext_resource type="Gradient" uid="uid://63hsra8pvfe1" path="res://assets/gradient.tres" id="2_402sr"]
 [ext_resource type="Script" uid="uid://da51r6nsfo2wd" path="res://3d/scripts/camera.gd" id="3_402sr"]
 [ext_resource type="Shader" uid="uid://p7x88q8m8joh" path="res://3d/shaders/blur.gdshader" id="4_mipmy"]
-[ext_resource type="Shader" uid="uid://cpga1orc0jhcn" path="res://3d/shaders/screen_space_rendering.gdshader" id="4_uhi6l"]
+[ext_resource type="Shader" uid="uid://cpga1orc0jhcn" path="res://3d/shaders/particle_renderer.gdshader" id="4_uhi6l"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_uhi6l"]
+resource_local_to_scene = true
 shader = ExtResource("4_mipmy")
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_uhi6l"]
+[sub_resource type="ViewportTexture" id="ViewportTexture_mipmy"]
 viewport_path = NodePath("SubViewport")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_mipmy"]
@@ -41,14 +42,14 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = SubResource("ViewportTexture_uhi6l")
-stretch_mode = 4
+texture = SubResource("ViewportTexture_mipmy")
 
 [node name="FPSCounter" type="Label" parent="CanvasLayer"]
 offset_right = 40.0
 offset_bottom = 23.0
 
 [node name="SubViewport" type="SubViewport" parent="."]
+transparent_bg = true
 render_target_update_mode = 4
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="SubViewport"]

@@ -21,7 +21,7 @@ void process() {
 	vec4 data = texelFetch(particle_data, pixel_coord, 0);
 
 	vec3 pos = data.xyz;
-	
+
 	// Set particle position
 	TRANSFORM[3].xyz = origin + pos;
 

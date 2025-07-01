@@ -6,3 +6,4 @@ res://3d/shaders/ground_shader.gdshader
 res://3d/shaders/blur.gdshader
 res://3d/scripts/screen_space_rendering.gd
 res://2d/scenes/particle_fluid_simulation_2d.tscn
+res://3d/shaders/particle_renderer.gdshader

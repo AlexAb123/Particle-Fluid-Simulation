@@ -125,7 +125,7 @@ func _mesh_setup():
 func _input(event):
 	if event is InputEventMouseMotion:
 		mouse_position = -origin + main_camera.global_position -main_camera.transform.basis.z.normalized() * 300;
-		#mouse_position = bounds/2
+		#mouse_position = bounds/2 # Center of bounds
 	elif event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			mouse_force_strength = int(event.pressed) * mouse_force_multiplier
@@ -317,6 +317,8 @@ func _process(delta: float) -> void:
 	for i in range(steps_per_frame):
 		_simulation_step(delta)
 	_update_cameras()
+	
+	
 		
 @onready var main_camera: Camera3D = $Camera3D
 @onready var camera1: Camera3D = $SubViewport/Camera3D

@@ -8,7 +8,10 @@ void vertex() {
 
 void fragment() {
 	// Called for every pixel the material is visible on.
-	COLOR = texture(screen_texture, UV);
+	
+	if (COLOR == vec4(0, 0, 0, 0)) discard;
+	if (COLOR.a < 0.1) COLOR = vec4(0,0,1,1);
+	float thickness = COLOR.a;
 	
 }
 

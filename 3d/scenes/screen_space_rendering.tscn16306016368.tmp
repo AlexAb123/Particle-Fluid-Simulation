@@ -1,0 +1,59 @@
+[gd_scene load_steps=10 format=3 uid="uid://mri7qt1dachx"]
+
+[ext_resource type="Script" uid="uid://b86qyi0h5e8km" path="res://3d/scripts/screen_space_rendering.gd" id="1_edfdb"]
+[ext_resource type="Gradient" uid="uid://63hsra8pvfe1" path="res://assets/gradient.tres" id="2_402sr"]
+[ext_resource type="Script" uid="uid://da51r6nsfo2wd" path="res://3d/scripts/camera.gd" id="3_402sr"]
+[ext_resource type="Shader" uid="uid://p7x88q8m8joh" path="res://3d/shaders/blur.gdshader" id="4_mipmy"]
+[ext_resource type="Shader" uid="uid://cpga1orc0jhcn" path="res://3d/shaders/screen_space_rendering.gdshader" id="4_uhi6l"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_uhi6l"]
+shader = ExtResource("4_mipmy")
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_uhi6l"]
+viewport_path = NodePath("SubViewport")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mipmy"]
+render_priority = 0
+shader = ExtResource("4_uhi6l")
+shader_parameter/particle_count = 0
+shader_parameter/particle_size = 0.0
+shader_parameter/image_size = 0
+shader_parameter/origin = Vector3(0, 0, 0)
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_402sr"]
+custom_aabb = AABB(-10000, -10000, -10000, 20000, 20000, 20000)
+
+[node name="ScreenSpaceRendering" type="Node3D"]
+script = ExtResource("1_edfdb")
+gradient = ExtResource("2_402sr")
+bounds = Vector3(500, 500, 250)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 350, 450)
+script = ExtResource("3_402sr")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer"]
+material = SubResource("ShaderMaterial_uhi6l")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("ViewportTexture_uhi6l")
+stretch_mode = 4
+
+[node name="FPSCounter" type="Label" parent="CanvasLayer"]
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="SubViewport" type="SubViewport" parent="."]
+render_target_update_mode = 4
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="SubViewport"]
+material_override = SubResource("ShaderMaterial_mipmy")
+mesh = SubResource("ArrayMesh_402sr")
+skeleton = NodePath("../..")
+
+[node name="Camera3D" type="Camera3D" parent="SubViewport"]

@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode unshaded, cull_disabled, blend_add;
+render_mode unshaded, blend_add;
 
 uniform sampler2D particle_data;
 uniform sampler2D gradient_texture: repeat_disable;
@@ -7,7 +7,6 @@ uniform int particle_count;
 uniform float particle_size;
 uniform int image_size;
 uniform vec3 origin;
-
 varying vec4 data;
 varying vec3 world_pos;
 void vertex() {
@@ -32,8 +31,10 @@ void fragment() {
 	if (length(center_offset) > 0.5) discard;
 
 	float depth = (distance(CAMERA_POSITION_WORLD, world_pos) - 50.0) / 300.0;
-	ALBEDO = vec3(depth-0.5, depth-0.5, depth-0.5);
-	ALPHA = 0.01;
+
+	ALBEDO = vec3(depth-0.5, 0, 0);
+	ALPHA = 0.1; // ALPHA * number of overlapping particles = thickness in the next shaders
+
 }
 
 //void light() {
