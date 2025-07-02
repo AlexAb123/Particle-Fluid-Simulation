@@ -1,8 +1,12 @@
+@tool
 extends Camera3D
 class_name MainCamera
 
 @export var speed: float = 1000
 @export var sensitivity: float = 0.002
+
+@onready var viewports: Array[Node] = find_children("*", "SubViewport")
+@onready var cameras: Array[Node] = find_children("*", "Camera3D")
 
 func _ready():
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED

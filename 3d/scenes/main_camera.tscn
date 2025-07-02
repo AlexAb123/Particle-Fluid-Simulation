@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://66tdse57wb7m"]
+[gd_scene load_steps=8 format=3 uid="uid://66tdse57wb7m"]
 
 [ext_resource type="Script" uid="uid://da51r6nsfo2wd" path="res://3d/scripts/main_camera.gd" id="1_vbit3"]
 [ext_resource type="Script" uid="uid://5wpp7ie0q33u" path="res://3d/scripts/attachable_sub_viewport.gd" id="2_nxp87"]
@@ -10,11 +10,15 @@ viewport_path = NodePath("DepthViewport")
 [sub_resource type="ViewportTexture" id="ViewportTexture_w57sv"]
 viewport_path = NodePath("NormalViewport")
 
+[sub_resource type="ViewportTexture" id="ViewportTexture_8nd1s"]
+viewport_path = NodePath("ThicknessViewport")
+
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_8nd1s"]
 resource_local_to_scene = true
 shader = ExtResource("3_w57sv")
 shader_parameter/depth_texture = SubResource("ViewportTexture_nxp87")
 shader_parameter/normal_texture = SubResource("ViewportTexture_w57sv")
+shader_parameter/thickness_texture = SubResource("ViewportTexture_8nd1s")
 
 [node name="MainCamera" type="Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 0, 0)
@@ -35,6 +39,14 @@ camera = NodePath("../NormalCamera")
 [node name="NormalCamera" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0, 0)
 cull_mask = 4
+
+[node name="ThicknessViewport" type="SubViewport" parent="." node_paths=PackedStringArray("camera")]
+script = ExtResource("2_nxp87")
+camera = NodePath("../ThicknessCamera")
+
+[node name="ThicknessCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0, 0)
+cull_mask = 8
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 

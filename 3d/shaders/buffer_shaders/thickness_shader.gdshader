@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode unshaded;
+render_mode unshaded, blend_add;
 
 uniform sampler2D particle_data;
 uniform int particle_count;
@@ -17,18 +17,15 @@ void vertex() {
 	world_pos = origin + texelFetch(particle_data, pixel_coord, 0).xyz;
 	VERTEX.xyz = world_pos;
 }
-
 void fragment() {
-
-	if (CAMERA_VISIBLE_LAYERS != 4u) discard; // Discard if layer is not normal layer
+	
+	if (CAMERA_VISIBLE_LAYERS != 8u) discard; // Discard if layer is not thickness layer
 
 	vec2 center_offset = POINT_COORD - vec2(0.5); // vec2(0.5) is the center
 	float distance_from_center = length(center_offset);
 	if (length(center_offset) > 0.5) discard;
 
-	float depth = (distance(CAMERA_POSITION_WORLD, world_pos) - 50.0) / 1000.0;
-
-	ALBEDO = vec3(1,0,0);
+	ALBEDO = vec3(0,1,0);
 }
 
 //void light() {

@@ -3,8 +3,8 @@
 [ext_resource type="Script" uid="uid://b86qyi0h5e8km" path="res://3d/scripts/screen_space_rendering.gd" id="1_edfdb"]
 [ext_resource type="Gradient" uid="uid://63hsra8pvfe1" path="res://assets/gradient.tres" id="2_402sr"]
 [ext_resource type="PackedScene" uid="uid://66tdse57wb7m" path="res://3d/scenes/main_camera.tscn" id="3_7k8hm"]
-[ext_resource type="Shader" uid="uid://dl2p7o2mlwm3w" path="res://3d/shaders/depth_shader.gdshader" id="5_31lt2"]
-[ext_resource type="Shader" uid="uid://c72m3eihifmr1" path="res://3d/shaders/normal_shader.gdshader" id="5_rts0p"]
+[ext_resource type="Shader" uid="uid://dl2p7o2mlwm3w" path="res://3d/shaders/buffer_shaders/depth_shader.gdshader" id="5_31lt2"]
+[ext_resource type="Shader" uid="uid://c72m3eihifmr1" path="res://3d/shaders/buffer_shaders/normal_shader.gdshader" id="5_rts0p"]
 [ext_resource type="Shader" uid="uid://cnx6dlugpmwgp" path="res://3d/shaders/ground_shader.gdshader" id="6_7k8hm"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1s01v"]

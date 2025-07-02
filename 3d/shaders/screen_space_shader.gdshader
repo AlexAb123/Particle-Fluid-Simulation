@@ -4,6 +4,7 @@ render_mode unshaded;
 
 uniform sampler2D depth_texture;
 uniform sampler2D normal_texture;
+uniform sampler2D thickness_texture;
 
 void vertex() {
 	// Called for every vertex the material is visible on.
@@ -11,7 +12,9 @@ void vertex() {
 
 void fragment() {
 	// Called for every pixel the material is visible on.
-	COLOR = texture(normal_texture, UV);
+	vec4 depth = texture(depth_texture, UV);
+	vec4 normal = texture(normal_texture, UV);
+	vec4 thickness = texture(thickness_texture, UV);
 }
 
 //void light() {
