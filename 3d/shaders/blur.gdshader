@@ -1,8 +1,6 @@
 shader_type canvas_item;
 
-uniform sampler2D depth_map: repeat_disable;
-uniform sampler2D normal_map: repeat_disable;
-uniform sampler2D thickness_map: repeat_disable;
+render_mode unshaded;
 
 void vertex() {
 	// Called for every vertex the material is visible on.
@@ -11,8 +9,11 @@ void vertex() {
 void fragment() {
 	// Called for every pixel the material is visible on.
 
-	if (COLOR == vec4(0, 0, 0, 0)) discard;
-	float thickness = COLOR.a;
+	if (COLOR.a == 0.0) discard;
+	else {
+		float thickness = COLOR.a;
+		COLOR.a *= 20.0;
+	}
 
 }
 

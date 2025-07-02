@@ -93,7 +93,6 @@ func _ready():
 	particle_data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAH)
 	
 	sub_viewport.size = get_viewport().get_visible_rect().size
-	get_viewport().transparent_bg = true
 	
 	for i in range(particle_count):
 		#positions.append(Vector4(randf() * bounds.x, randf() * bounds.y, randf() * bounds.z, 0))
