@@ -25,6 +25,7 @@ transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 
 script = ExtResource("1_vbit3")
 
 [node name="DepthViewport" type="SubViewport" parent="." node_paths=PackedStringArray("camera")]
+transparent_bg = true
 script = ExtResource("2_nxp87")
 camera = NodePath("../DepthCamera")
 
@@ -32,6 +33,7 @@ camera = NodePath("../DepthCamera")
 cull_mask = 2
 
 [node name="NormalViewport" type="SubViewport" parent="." node_paths=PackedStringArray("camera")]
+transparent_bg = true
 script = ExtResource("2_nxp87")
 camera = NodePath("../NormalCamera")
 
@@ -39,6 +41,7 @@ camera = NodePath("../NormalCamera")
 cull_mask = 4
 
 [node name="ThicknessViewport" type="SubViewport" parent="." node_paths=PackedStringArray("camera")]
+transparent_bg = true
 script = ExtResource("2_nxp87")
 camera = NodePath("../ThicknessCamera")
 

@@ -24,17 +24,25 @@ void fragment() {
 	if (length(center_offset) > 0.5) discard;
 	
 	if (CAMERA_VISIBLE_LAYERS == 2u) { // Depth Layer
-		float depth = (distance(CAMERA_POSITION_WORLD, world_pos) - 50.0) / 1000.0;
+		float depth = (distance(CAMERA_POSITION_WORLD, world_pos) - 0.05) / (4000.0 - 0.05); // Numbers are main camera near (0.05) and far (4000.0) values
 		ALBEDO = vec3(depth);
 	}
 	
 	if (CAMERA_VISIBLE_LAYERS == 4u) { // Normal Layer
-		ALBEDO = vec3(1,0,0);
+        float sphere_radius = 0.5;
+        float z = sqrt(max(0.0, sphere_radius * sphere_radius - distance_from_center * distance_from_center));
+        // Step 2: Create local normal (pointing outward from sphere center)
+        vec3 local_normal = normalize(vec3(center_offset.x, center_offset.y, z));
+        // Step 3: Transform to world space
+        vec3 world_normal = normalize((MODEL_MATRIX * vec4(local_normal, 0.0)).xyz);
+        // Step 4: Pack normal to 0-1 range for output
+        ALBEDO = world_normal * 0.5 + 0.5;
 	}
 	
 	if (CAMERA_VISIBLE_LAYERS == 8u) { // Thickness Layer
 		ALBEDO = vec3(0,1,0);
 	}
+	
 }
 
 //void light() {

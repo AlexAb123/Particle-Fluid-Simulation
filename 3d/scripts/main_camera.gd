@@ -13,7 +13,6 @@ func _ready():
 	
 	parent_viewport.size_changed.connect(_update_viewports)
 	_update_viewports()
-	
 
 func _update_viewports() -> void:
 	for viewport: SubViewport in viewports:

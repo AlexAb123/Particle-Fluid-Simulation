@@ -12,8 +12,6 @@ void vertex() {
 
 void fragment() {
 
-	if (COLOR.a == 0.0) discard;
-
 	// Called for every pixel the material is visible on.
 	vec4 depth = texture(depth_texture, UV);
 	vec4 normal = texture(normal_texture, UV);
