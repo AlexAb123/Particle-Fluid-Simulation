@@ -29,14 +29,6 @@ layout(set = 0, binding = 0, std430) restrict buffer Params {
 }
 params;
 
-layout(set = 0, binding = 2, std430) restrict buffer BucketIndices {
-    uint bucket_indices[]; // Maps particle index to bucket index. buckets[4] stores the bucket index that the particle with index 4 is in
-};
-
-layout(set = 0, binding = 4, std430) restrict buffer BucketPrefixSum {
-    uint bucket_prefix_sum[];
-};
-
 layout(set = 0, binding = 6, std430) restrict buffer Positions {
     vec3 positions[];
 };
@@ -76,17 +68,8 @@ void main() {
         return;
     }
 
-    uint bucket = bucket_indices[particle_index];
-    uint sorted_particle_index = atomicAdd(bucket_prefix_sum[bucket], 1);
-
-    // Sort these values by the bucket index of the corresponding particles. 
-    // For example, if bucket x has 3 particles, then the 3 positions (and velocities, densities...) will be next to eachother in the sorted_positions array
-    // Useful for GPU optimization by memory coalescing
-    // This is essentially creating new indices for each particle based on its position in space (bucket)
-    // We discard the old indices because we don't need them. We don't care that particle 0 in frame 0 is the same particle as particle 0 in frame 1.
-    // We might as well leverage the fact that we don't need to uphold this invariant in order to gain a performance boost from coalescing memory (accesing memory in patterns since they are sorted)
-    sorted_positions[sorted_particle_index] = positions[particle_index];
-    sorted_velocities[sorted_particle_index] = velocities[particle_index];
-    sorted_densities[sorted_particle_index] = densities[particle_index];
-    sorted_near_densities[sorted_particle_index] = densities[particle_index];
+    positions[particle_index] = sorted_positions[particle_index];
+    velocities[particle_index] = sorted_velocities[particle_index];
+    densities[particle_index] = sorted_densities[particle_index];
+    near_densities[particle_index] = sorted_near_densities[particle_index];
 }

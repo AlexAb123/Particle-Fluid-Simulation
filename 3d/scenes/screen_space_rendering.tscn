@@ -28,7 +28,9 @@ custom_aabb = AABB(-10000, -10000, -10000, 20000, 20000, 20000)
 
 [node name="ScreenSpaceRendering" type="Node3D"]
 script = ExtResource("1_edfdb")
+particle_count = 200000
 gradient = ExtResource("2_402sr")
+bounds = Vector3(1000, 250, 750)
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 350, 450)

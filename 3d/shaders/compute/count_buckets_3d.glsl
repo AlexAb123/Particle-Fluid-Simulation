@@ -29,11 +29,11 @@ layout(set = 0, binding = 0, std430) restrict buffer Params {
 }
 params;
 
-layout(set = 0, binding = 1, std430) restrict buffer BucketIndices {
+layout(set = 0, binding = 2, std430) restrict buffer BucketIndices {
     uint bucket_indices[]; // Maps particle index to bucket index. buckets[4] stores the bucket index that the particle with index 4 is in
 };
 
-layout(set = 0, binding = 2, std430) restrict buffer BucketCounts {
+layout(set = 0, binding = 3, std430) restrict buffer BucketCounts {
     uint bucket_counts[];
 };
 

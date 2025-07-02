@@ -29,15 +29,15 @@ layout(set = 0, binding = 0, std430) restrict buffer Params {
 }
 params;
 
-layout(set = 0, binding = 2, std430) restrict buffer BucketCounts {
+layout(set = 0, binding = 3, std430) restrict buffer BucketCounts {
     uint bucket_counts[];
 };
 
-layout(set = 0, binding = 3, std430) restrict buffer BucketPrefixSum {
+layout(set = 0, binding = 4, std430) restrict buffer BucketPrefixSum {
     uint bucket_prefix_sum[];
 };
 
-layout(set = 0, binding = 4, std430) restrict buffer BucketOffsets {
+layout(set = 0, binding = 5, std430) restrict buffer BucketOffsets {
     uint bucket_offsets[]; // Maps bucket index to the index in the particles_by_bucket array in which the particles contained in that bucket begin to be listed in the particles_by_bucket array
 };
 

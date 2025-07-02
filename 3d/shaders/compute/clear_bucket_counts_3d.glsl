@@ -29,7 +29,7 @@ layout(set = 0, binding = 0, std430) restrict buffer Params {
 }
 params;
 
-layout(set = 0, binding = 2, std430) restrict buffer BucketCounts {
+layout(set = 0, binding = 3, std430) restrict buffer BucketCounts {
     uint bucket_counts[];
 };
 

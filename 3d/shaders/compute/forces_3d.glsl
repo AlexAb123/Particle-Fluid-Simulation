@@ -29,31 +29,27 @@ layout(set = 0, binding = 0, std430) restrict buffer Params {
 }
 params;
 
-layout(set = 0, binding = 4, std430) restrict buffer BucketOffsets {
-    uint bucket_offsets[]; // Maps bucket index to the index in the particles_by_bucket array in which the particles contained in that bucket begin to be listed in the particles_by_bucket array
-};
+layout(binding = 1, rgba16f) uniform image2D particle_data;
 
-layout(set = 0, binding = 5, std430) restrict buffer ParticlesByBucket {
-    uint particles_by_bucket[]; // Stores particle indices sorted by their bucket indices
+layout(set = 0, binding = 5, std430) restrict buffer BucketOffsets {
+    uint bucket_offsets[]; // Maps bucket index to the index in the particles_by_bucket array in which the particles contained in that bucket begin to be listed in the particles_by_bucket array
 };
 
 layout(set = 0, binding = 6, std430) restrict buffer Positions {
     vec3 positions[];
 };
 
-layout(set = 0, binding = 7, std430) restrict buffer Densities {
-    float densities[];
-};
-
-layout(set = 0, binding = 8, std430) restrict buffer NearDensities {
-    float near_densities[];
-};
-
-layout(set = 0, binding = 9, std430) restrict buffer Velocities {
+layout(set = 0, binding = 8, std430) restrict buffer Velocities {
     vec3 velocities[];
 };
 
-layout(binding = 10, rgba16f) uniform image2D particle_data;
+layout(set = 0, binding = 10, std430) restrict buffer Densities {
+    float densities[];
+};
+
+layout(set = 0, binding = 12, std430) restrict buffer NearDensities {
+    float near_densities[];
+};
 
 layout(push_constant, std430) uniform PushConstant {
     float delta;

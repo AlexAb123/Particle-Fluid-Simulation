@@ -52,7 +52,8 @@ var rd: RenderingDevice
 var clear_bucket_counts_pipeline: RID # Clears bucket counts. Needs bucket_count invocations.
 var count_buckets_pipeline: RID # Counts buckets for bucket sort. Needs particle_count invocations.
 var prefix_sum_pipeline: RID # Runs a prefix sum on bucket_counts and generates bucket_offsets for quick neighbour search. Needs 1 invocation (because it does not yet use a parallel prefix sum algorithm).
-var scatter_pipeline: RID # Scatters the prefix sum to create particles_by_bucket which is used alongside bucket_offsets for quick neighbour search. Needs particle_count invocations.
+var scatter_and_reorder_pipeline: RID # Scatters the prefix sum to sort particle indices based on their corresponding buckets. Needs particle_count invocations.
+var reorder_copy_back_pipeline: RID # Copies back the sorted buffers to the original buffers.
 var densities_pipeline: RID # Calculates densities and pressure to every particle. Needs particle_count invocations.
 var forces_pipeline: RID # Uses density and pressure calculations to caluclate and apply forces to every particle. Needs particle_count invocations.
 
@@ -61,21 +62,24 @@ var bucket_indices_buffer: RID
 var bucket_counts_buffer: RID
 var bucket_prefix_sum_buffer: RID
 var bucket_offsets_buffer: RID
-var particles_by_bucket_buffer: RID
 var positions_buffer: RID
+var sorted_positions_buffer: RID
 var velocities_buffer: RID
+var sorted_velocities_buffer: RID
 var densities_buffer: RID
+var sorted_densities_buffer: RID
 var near_densities_buffer: RID
-var forces_buffer: RID
+var sorted_near_densities_buffer: RID
 
 # Uniform sets
 var clear_bucket_counts_uniform_set: RID
 var count_buckets_uniform_set: RID
 var prefix_sum_uniform_set: RID
-var scatter_uniform_set: RID
+var scatter_and_reorder_uniform_set: RID
 var densities_uniform_set: RID
 var near_densities_uniform_set: RID
 var forces_uniform_set: RID
+var reorder_copy_back_uniform_set: RID
 
 func _ready():
 	
@@ -153,7 +157,8 @@ func _setup_shaders() -> void:
 	var clear_bucket_counts_shader := _create_compute_shader(load("res://3d/shaders/compute/clear_bucket_counts_3d.glsl"))
 	var count_buckets_shader := _create_compute_shader(load("res://3d/shaders/compute/count_buckets_3d.glsl"))
 	var prefix_sum_shader := _create_compute_shader(load("res://3d/shaders/compute/prefix_sum_3d.glsl"))
-	var scatter_shader := _create_compute_shader(load("res://3d/shaders/compute/scatter_3d.glsl"))
+	var scatter_and_reorder_shader := _create_compute_shader(load("res://3d/shaders/compute/scatter_and_reorder_3d.glsl"))
+	var reorder_copy_back_shader := _create_compute_shader(load("res://3d/shaders/compute/reorder_copy_back_3d.glsl"))
 	var densities_shader := _create_compute_shader(load("res://3d/shaders/compute/densities_3d.glsl"))
 	var forces_shader := _create_compute_shader(load("res://3d/shaders/compute/forces_3d.glsl"))
 	
@@ -161,7 +166,8 @@ func _setup_shaders() -> void:
 	clear_bucket_counts_pipeline = rd.compute_pipeline_create(clear_bucket_counts_shader)
 	count_buckets_pipeline = rd.compute_pipeline_create(count_buckets_shader)
 	prefix_sum_pipeline = rd.compute_pipeline_create(prefix_sum_shader)
-	scatter_pipeline = rd.compute_pipeline_create(scatter_shader)
+	scatter_and_reorder_pipeline = rd.compute_pipeline_create(scatter_and_reorder_shader)
+	reorder_copy_back_pipeline = rd.compute_pipeline_create(reorder_copy_back_shader)
 	densities_pipeline = rd.compute_pipeline_create(densities_shader)
 	forces_pipeline = rd.compute_pipeline_create(forces_shader)
 	
@@ -170,30 +176,36 @@ func _setup_shaders() -> void:
 	bucket_counts_buffer = rd.storage_buffer_create(4 * bucket_count)
 	bucket_prefix_sum_buffer = rd.storage_buffer_create(4 * bucket_count)
 	bucket_offsets_buffer = rd.storage_buffer_create(4 * bucket_count)
-	particles_by_bucket_buffer = rd.storage_buffer_create(4 * particle_count)
 	
 	var positions_bytes := positions.to_byte_array()
 	positions_buffer = rd.storage_buffer_create(positions_bytes.size(), positions_bytes)
+	sorted_positions_buffer = rd.storage_buffer_create(positions_bytes.size())
 	var velocities_bytes := velocities.to_byte_array()
 	velocities_buffer = rd.storage_buffer_create(velocities_bytes.size(), velocities_bytes)
+	sorted_velocities_buffer = rd.storage_buffer_create(velocities_bytes.size())
 	densities_buffer = rd.storage_buffer_create(4 * particle_count)
+	sorted_densities_buffer = rd.storage_buffer_create(4 * particle_count)
 	near_densities_buffer = rd.storage_buffer_create(4 * particle_count)
+	sorted_near_densities_buffer = rd.storage_buffer_create(4 * particle_count)
 	
 	# Create uniforms
 	var params_uniform := _create_params_uniform(0)
 	
-	var bucket_indices_uniform := _create_uniform(bucket_indices_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 1)
-	var bucket_counts_uniform := _create_uniform(bucket_counts_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 2)
-	var bucket_prefix_sum_uniform := _create_uniform(bucket_prefix_sum_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 3)
-	var bucket_offsets_uniform := _create_uniform(bucket_offsets_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 4)
-	var particles_by_bucket_uniform := _create_uniform(particles_by_bucket_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 5)
+	var particle_data_uniform := _create_uniform(particle_data_buffer, RenderingDevice.UNIFORM_TYPE_IMAGE, 1)
+	
+	var bucket_indices_uniform := _create_uniform(bucket_indices_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 2)
+	var bucket_counts_uniform := _create_uniform(bucket_counts_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 3)
+	var bucket_prefix_sum_uniform := _create_uniform(bucket_prefix_sum_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 4)
+	var bucket_offsets_uniform := _create_uniform(bucket_offsets_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 5)
 	
 	var positions_uniform := _create_uniform(positions_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 6)
-	var densities_uniform := _create_uniform(densities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 7)
-	var near_densities_uniform := _create_uniform(near_densities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 8)
-	var velocities_uniform := _create_uniform(velocities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 9)
-	
-	var particle_data_uniform := _create_uniform(particle_data_buffer, RenderingDevice.UNIFORM_TYPE_IMAGE, 10)
+	var sorted_positions_uniform := _create_uniform(sorted_positions_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 7)
+	var velocities_uniform := _create_uniform(velocities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 8)
+	var sorted_velocities_uniform := _create_uniform(sorted_velocities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 9)
+	var densities_uniform := _create_uniform(densities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 10)
+	var sorted_densities_uniform := _create_uniform(sorted_densities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 11)
+	var near_densities_uniform := _create_uniform(near_densities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 12)
+	var sorted_near_densities_uniform := _create_uniform(sorted_near_densities_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, 13)
 	
 	# Create uniform sets
 	clear_bucket_counts_uniform_set = rd.uniform_set_create(
@@ -215,17 +227,35 @@ func _setup_shaders() -> void:
 		bucket_offsets_uniform],
 		prefix_sum_shader,
 		0)
-	scatter_uniform_set = rd.uniform_set_create(
+	scatter_and_reorder_uniform_set = rd.uniform_set_create(
 		[params_uniform, 
 		bucket_indices_uniform,
 		bucket_prefix_sum_uniform,
-		particles_by_bucket_uniform],
-		scatter_shader,
+		positions_uniform,
+		sorted_positions_uniform,
+		velocities_uniform,
+		sorted_velocities_uniform,
+		densities_uniform,
+		sorted_densities_uniform,
+		near_densities_uniform,
+		sorted_near_densities_uniform],
+		scatter_and_reorder_shader,
+		0)
+	reorder_copy_back_uniform_set = rd.uniform_set_create(
+		[params_uniform, 
+		positions_uniform,
+		sorted_positions_uniform,
+		velocities_uniform,
+		sorted_velocities_uniform,
+		densities_uniform,
+		sorted_densities_uniform,
+		near_densities_uniform,
+		sorted_near_densities_uniform],
+		reorder_copy_back_shader,
 		0)
 	densities_uniform_set = rd.uniform_set_create(
 		[params_uniform, 
 		bucket_offsets_uniform,
-		particles_by_bucket_uniform,
 		positions_uniform,
 		densities_uniform,
 		near_densities_uniform],
@@ -234,11 +264,10 @@ func _setup_shaders() -> void:
 	forces_uniform_set = rd.uniform_set_create(
 		[params_uniform, 
 		bucket_offsets_uniform,
-		particles_by_bucket_uniform,
 		positions_uniform,
+		velocities_uniform,
 		densities_uniform,
 		near_densities_uniform,
-		velocities_uniform,
 		particle_data_uniform],
 		forces_shader,
 		0)
@@ -279,12 +308,12 @@ func _create_params_uniform(binding: int) -> RDUniform:
 	var params_buffer = rd.storage_buffer_create(params_bytes.size(), params_bytes)
 	return _create_uniform(params_buffer, RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER, binding)
 	
-	
 func _simulation_step(delta: float) -> void:
 	_run_compute_pipeline(clear_bucket_counts_pipeline, clear_bucket_counts_uniform_set, ceil(bucket_count/float(workgroup_size)))
 	_run_compute_pipeline(count_buckets_pipeline, count_buckets_uniform_set, ceil(particle_count/float(workgroup_size)))
 	_run_compute_pipeline(prefix_sum_pipeline, prefix_sum_uniform_set, 1)
-	_run_compute_pipeline(scatter_pipeline, scatter_uniform_set, ceil(particle_count/float(workgroup_size)))
+	_run_compute_pipeline(scatter_and_reorder_pipeline, scatter_and_reorder_uniform_set, ceil(particle_count/float(workgroup_size)))
+	_run_compute_pipeline(reorder_copy_back_pipeline, reorder_copy_back_uniform_set, ceil(particle_count/float(workgroup_size)))
 	_run_compute_pipeline(densities_pipeline, densities_uniform_set, ceil(particle_count/float(workgroup_size)))
 	_run_compute_pipeline_push_constant(forces_pipeline, forces_uniform_set, ceil(particle_count/float(workgroup_size)), [delta, mouse_force_strength, mouse_position.x, mouse_position.y, mouse_position.z, 0.0, 0.0, 0.0])
 
@@ -327,34 +356,36 @@ func _process(delta: float) -> void:
 		_simulation_step(delta)
 	_update_cameras()
 	
-	
-		
 @onready var main_camera: Camera3D = $Camera3D
 @onready var camera1: Camera3D = $SubViewport/Camera3D
 func _update_cameras() -> void:
 	camera1.global_transform = main_camera.global_transform
 	
-		
 func _exit_tree() -> void:
 	rd.free_rid(bucket_indices_buffer)
 	rd.free_rid(bucket_counts_buffer)
 	rd.free_rid(bucket_prefix_sum_buffer)
 	rd.free_rid(bucket_offsets_buffer)
-	rd.free_rid(particles_by_bucket_buffer)
 	rd.free_rid(positions_buffer)
+	rd.free_rid(sorted_positions_buffer)
 	rd.free_rid(velocities_buffer)
+	rd.free_rid(sorted_velocities_buffer)
 	rd.free_rid(densities_buffer)
+	rd.free_rid(sorted_densities_buffer)
 	rd.free_rid(near_densities_buffer)
+	rd.free_rid(sorted_near_densities_buffer)
 	rd.free_rid(clear_bucket_counts_pipeline)
 	rd.free_rid(count_buckets_pipeline)
 	rd.free_rid(prefix_sum_pipeline)
-	rd.free_rid(scatter_pipeline)
+	rd.free_rid(scatter_and_reorder_pipeline)
+	rd.free_rid(reorder_copy_back_pipeline)
 	rd.free_rid(densities_pipeline)
 	rd.free_rid(forces_pipeline)
 	rd.free_rid(clear_bucket_counts_uniform_set)
 	rd.free_rid(count_buckets_uniform_set)
 	rd.free_rid(prefix_sum_uniform_set)
-	rd.free_rid(scatter_uniform_set)
+	rd.free_rid(scatter_and_reorder_uniform_set)
+	rd.free_rid(reorder_copy_back_uniform_set)
 	rd.free_rid(densities_uniform_set)
 	rd.free_rid(near_densities_uniform_set)
 	rd.free_rid(forces_uniform_set)
