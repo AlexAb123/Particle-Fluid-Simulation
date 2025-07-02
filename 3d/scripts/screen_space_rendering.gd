@@ -37,10 +37,12 @@ var grid_depth: int
 var bucket_count: int
 
 @onready var fps_counter: Label = $CanvasLayer/FPSCounter
-@onready var sub_viewport: SubViewport = $SubViewport
-@onready var mesh_instance_3d: MeshInstance3D = $SubViewport/MeshInstance3D
+@onready var mesh_instance_3d: MeshInstance3D = $MeshInstance3D
+@onready var main_camera: MainCamera = $MainCamera
 
-var process_material: ShaderMaterial
+var depth_material: ShaderMaterial
+var normal_material: ShaderMaterial
+
 var particle_data_image: Image
 var particle_data_texture_rd: Texture2DRD
 var particle_data_buffer : RID
@@ -92,8 +94,6 @@ func _ready():
 	
 	particle_data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAH)
 	
-	sub_viewport.size = get_viewport().get_visible_rect().size
-	
 	for i in range(particle_count):
 		#positions.append(Vector4(randf() * bounds.x, randf() * bounds.y, randf() * bounds.z, 0))
 		positions.append(Vector4(randf() * bounds.x/4 + bounds.x/2 - bounds.x/8, randf() * bounds.y/4 + bounds.y/2 - bounds.y/8, randf() * bounds.z/4 + bounds.z/2 - bounds.z/8, 0))
@@ -116,14 +116,16 @@ func _mesh_setup():
 	arr_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_POINTS, arrays)
 	mesh_instance_3d.mesh = arr_mesh
 	
-	process_material = mesh_instance_3d.material_override as ShaderMaterial
-	process_material.set_shader_parameter("particle_count", particle_count)
-	process_material.set_shader_parameter("particle_size", particle_size)
-	process_material.set_shader_parameter("image_size", image_size)
-	process_material.set_shader_parameter("origin", origin)
-	var gradient_texture: GradientTexture1D = GradientTexture1D.new()
-	gradient_texture.gradient = gradient
-	process_material.set_shader_parameter("gradient_texture", gradient_texture)
+	depth_material = mesh_instance_3d.material_override as ShaderMaterial
+	_set_shader_parameters(depth_material)
+	normal_material = depth_material.next_pass as ShaderMaterial
+	_set_shader_parameters(normal_material)
+
+func _set_shader_parameters(material: ShaderMaterial):
+	material.set_shader_parameter("particle_count", particle_count)
+	material.set_shader_parameter("particle_size", particle_size)
+	material.set_shader_parameter("image_size", image_size)
+	material.set_shader_parameter("origin", origin)
 	
 func _input(event):
 	if event is InputEventMouseMotion:
@@ -150,7 +152,8 @@ func _setup_shaders() -> void:
 	particle_data_buffer = rd.texture_create(fmt, view, [particle_data_image.get_data()])
 	particle_data_texture_rd = Texture2DRD.new()
 	particle_data_texture_rd.texture_rd_rid = particle_data_buffer # Connect texture to buffer
-	process_material.set_shader_parameter("particle_data", particle_data_texture_rd) # Texture stored by reference, will be updated in the particle shader once the compute shader edits it
+	depth_material.set_shader_parameter("particle_data", particle_data_texture_rd) # Texture stored by reference, will be updated in the particle shader once the compute shader edits it
+	normal_material.set_shader_parameter("particle_data", particle_data_texture_rd)
 
 	# Load compute shaders
 	var clear_bucket_counts_shader := _create_compute_shader(load("res://3d/shaders/compute/clear_bucket_counts_3d.glsl"))
@@ -353,12 +356,7 @@ func _process(delta: float) -> void:
 	fps_counter.text = str(int(Engine.get_frames_per_second())) + " fps"
 	for i in range(steps_per_frame):
 		_simulation_step(delta)
-	_update_cameras()
-	
-@onready var main_camera: Camera3D = $Camera3D
-@onready var camera1: Camera3D = $SubViewport/Camera3D
-func _update_cameras() -> void:
-	camera1.global_transform = main_camera.global_transform
+
 	
 func _exit_tree() -> void:
 	rd.free_rid(bucket_indices_buffer)

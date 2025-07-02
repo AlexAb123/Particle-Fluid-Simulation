@@ -3,7 +3,7 @@
 [ext_resource type="Shader" uid="uid://ccqn3u82pxb38" path="res://3d/shaders/particle_shader_3d.gdshader" id="1_cjcay"]
 [ext_resource type="Script" uid="uid://dncwxg6w03r5s" path="res://3d/scripts/particle_fluid_simulation_3d.gd" id="1_s30ui"]
 [ext_resource type="Gradient" uid="uid://63hsra8pvfe1" path="res://assets/gradient.tres" id="2_ynkks"]
-[ext_resource type="Script" uid="uid://da51r6nsfo2wd" path="res://3d/scripts/camera.gd" id="4_1s01v"]
+[ext_resource type="Script" uid="uid://da51r6nsfo2wd" path="res://3d/scripts/main_camera.gd" id="4_1s01v"]
 [ext_resource type="Shader" uid="uid://cnx6dlugpmwgp" path="res://3d/shaders/ground_shader.gdshader" id="4_ecwoc"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_7gpfj"]

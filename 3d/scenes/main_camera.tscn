@@ -1,0 +1,47 @@
+[gd_scene load_steps=7 format=3 uid="uid://66tdse57wb7m"]
+
+[ext_resource type="Script" uid="uid://da51r6nsfo2wd" path="res://3d/scripts/main_camera.gd" id="1_vbit3"]
+[ext_resource type="Script" uid="uid://5wpp7ie0q33u" path="res://3d/scripts/attachable_sub_viewport.gd" id="2_nxp87"]
+[ext_resource type="Shader" uid="uid://p7x88q8m8joh" path="res://3d/shaders/screen_space_shader.gdshader" id="3_w57sv"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_nxp87"]
+viewport_path = NodePath("DepthViewport")
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_w57sv"]
+viewport_path = NodePath("NormalViewport")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8nd1s"]
+resource_local_to_scene = true
+shader = ExtResource("3_w57sv")
+shader_parameter/depth_texture = SubResource("ViewportTexture_nxp87")
+shader_parameter/normal_texture = SubResource("ViewportTexture_w57sv")
+
+[node name="MainCamera" type="Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 0, 0)
+script = ExtResource("1_vbit3")
+
+[node name="DepthViewport" type="SubViewport" parent="." node_paths=PackedStringArray("camera")]
+script = ExtResource("2_nxp87")
+camera = NodePath("../DepthCamera")
+
+[node name="DepthCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0, 0)
+cull_mask = 2
+
+[node name="NormalViewport" type="SubViewport" parent="." node_paths=PackedStringArray("camera")]
+script = ExtResource("2_nxp87")
+camera = NodePath("../NormalCamera")
+
+[node name="NormalCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0, 0)
+cull_mask = 4
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer"]
+material = SubResource("ShaderMaterial_8nd1s")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2

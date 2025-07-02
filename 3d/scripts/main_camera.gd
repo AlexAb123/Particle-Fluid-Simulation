@@ -1,4 +1,5 @@
 extends Camera3D
+class_name MainCamera
 
 @export var speed: float = 1000
 @export var sensitivity: float = 0.002

@@ -2,19 +2,16 @@ shader_type canvas_item;
 
 render_mode unshaded;
 
+uniform sampler2D depth_texture;
+uniform sampler2D normal_texture;
+
 void vertex() {
 	// Called for every vertex the material is visible on.
 }
 
 void fragment() {
 	// Called for every pixel the material is visible on.
-
-	if (COLOR.a == 0.0) discard;
-	else {
-		float thickness = COLOR.a;
-		COLOR.a *= 20.0;
-	}
-
+	COLOR = texture(normal_texture, UV);
 }
 
 //void light() {
