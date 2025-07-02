@@ -1,3 +1,0 @@
-ShaderMaterial
-VisualShader
-Shader
