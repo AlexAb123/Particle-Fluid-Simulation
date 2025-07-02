@@ -1,4 +1,3 @@
-@tool
 extends Camera3D
 class_name MainCamera
 
@@ -7,9 +6,18 @@ class_name MainCamera
 
 @onready var viewports: Array[Node] = find_children("*", "SubViewport")
 @onready var cameras: Array[Node] = find_children("*", "Camera3D")
+@onready var parent_viewport: Viewport = get_viewport()
 
 func _ready():
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	
+	parent_viewport.size_changed.connect(_update_viewports)
+	_update_viewports()
+	
+
+func _update_viewports() -> void:
+	for viewport: SubViewport in viewports:
+		viewport.size = parent_viewport.size
 
 func _input(event):
 	
@@ -43,3 +51,6 @@ func _process(delta):
 		direction -= Vector3.UP
 	if direction.length() > 0:
 		global_position += direction.normalized() * speed * delta
+		
+	for camera: Camera3D in cameras:
+		camera.global_transform = global_transform

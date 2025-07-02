@@ -29,7 +29,6 @@ script = ExtResource("2_nxp87")
 camera = NodePath("../DepthCamera")
 
 [node name="DepthCamera" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0, 0)
 cull_mask = 2
 
 [node name="NormalViewport" type="SubViewport" parent="." node_paths=PackedStringArray("camera")]
@@ -37,7 +36,6 @@ script = ExtResource("2_nxp87")
 camera = NodePath("../NormalCamera")
 
 [node name="NormalCamera" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0, 0)
 cull_mask = 4
 
 [node name="ThicknessViewport" type="SubViewport" parent="." node_paths=PackedStringArray("camera")]

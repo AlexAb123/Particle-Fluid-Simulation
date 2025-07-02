@@ -1,5 +1,4 @@
 @tool
-
 extends SubViewport
 class_name AttachableSubViewport
 

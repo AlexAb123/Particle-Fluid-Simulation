@@ -1,10 +1,9 @@
-[gd_scene load_steps=12 format=3 uid="uid://mri7qt1dachx"]
+[gd_scene load_steps=10 format=3 uid="uid://mri7qt1dachx"]
 
 [ext_resource type="Script" uid="uid://b86qyi0h5e8km" path="res://3d/scripts/screen_space_rendering.gd" id="1_edfdb"]
 [ext_resource type="Gradient" uid="uid://63hsra8pvfe1" path="res://assets/gradient.tres" id="2_402sr"]
 [ext_resource type="PackedScene" uid="uid://66tdse57wb7m" path="res://3d/scenes/main_camera.tscn" id="3_7k8hm"]
-[ext_resource type="Shader" uid="uid://dl2p7o2mlwm3w" path="res://3d/shaders/buffer_shaders/depth_shader.gdshader" id="5_31lt2"]
-[ext_resource type="Shader" uid="uid://c72m3eihifmr1" path="res://3d/shaders/buffer_shaders/normal_shader.gdshader" id="5_rts0p"]
+[ext_resource type="Shader" uid="uid://chcmnams6yqjj" path="res://3d/shaders/particle_renderer.gdshader" id="5_mipmy"]
 [ext_resource type="Shader" uid="uid://cnx6dlugpmwgp" path="res://3d/shaders/ground_shader.gdshader" id="6_7k8hm"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1s01v"]
@@ -15,18 +14,9 @@ shader = ExtResource("6_7k8hm")
 material = SubResource("ShaderMaterial_1s01v")
 size = Vector2(2500, 2500)
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_8wpq0"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7k8hm"]
 render_priority = 0
-shader = ExtResource("5_rts0p")
-shader_parameter/particle_count = 0
-shader_parameter/particle_size = 0.0
-shader_parameter/image_size = 0
-shader_parameter/origin = Vector3(0, 0, 0)
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_mipmy"]
-render_priority = 0
-next_pass = SubResource("ShaderMaterial_8wpq0")
-shader = ExtResource("5_31lt2")
+shader = ExtResource("5_mipmy")
 shader_parameter/particle_count = 0
 shader_parameter/particle_size = 0.0
 shader_parameter/image_size = 0
@@ -40,6 +30,7 @@ script = ExtResource("1_edfdb")
 gradient = ExtResource("2_402sr")
 
 [node name="MainCamera" parent="." instance=ExtResource("3_7k8hm")]
+cull_mask = 1
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -51,7 +42,7 @@ metadata/_edit_use_anchors_ = true
 [node name="Ground" type="MeshInstance3D" parent="."]
 mesh = SubResource("PlaneMesh_31lt2")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-layers = 7
-material_override = SubResource("ShaderMaterial_mipmy")
+[node name="ParticlesMeshInstance" type="MeshInstance3D" parent="."]
+layers = 15
+material_override = SubResource("ShaderMaterial_7k8hm")
 mesh = SubResource("ArrayMesh_402sr")
