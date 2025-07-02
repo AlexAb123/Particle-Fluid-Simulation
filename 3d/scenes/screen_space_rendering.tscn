@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://mri7qt1dachx"]
+[gd_scene load_steps=12 format=3 uid="uid://mri7qt1dachx"]
 
 [ext_resource type="Script" uid="uid://b86qyi0h5e8km" path="res://3d/scripts/screen_space_rendering.gd" id="1_edfdb"]
 [ext_resource type="Gradient" uid="uid://63hsra8pvfe1" path="res://assets/gradient.tres" id="2_402sr"]
@@ -15,8 +15,11 @@ viewport_path = NodePath("SubViewport")
 
 [sub_resource type="World3D" id="World3D_mipmy"]
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7k8hm"]
+
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_mipmy"]
 render_priority = 0
+next_pass = SubResource("ShaderMaterial_7k8hm")
 shader = ExtResource("4_uhi6l")
 shader_parameter/particle_count = 0
 shader_parameter/particle_size = 0.0
