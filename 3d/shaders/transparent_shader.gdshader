@@ -42,8 +42,8 @@ void fragment() {
 	}
 	
 	if (CAMERA_VISIBLE_LAYERS == 8u){ // Thickness layer
-		ALBEDO = vec3(0,0,1);
-		ALPHA = 0.1;
+		ALBEDO = vec3(1);
+		ALPHA = 0.05;
 	}
 }
 

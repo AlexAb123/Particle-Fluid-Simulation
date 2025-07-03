@@ -17,7 +17,7 @@ void fragment() {
 	vec4 normal = texture(normal_texture, UV);
 	vec4 thickness = texture(thickness_texture, UV);
 
-	COLOR = depth;
+	COLOR = thickness;
 }
 
 //void light() {
