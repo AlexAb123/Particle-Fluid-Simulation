@@ -40,7 +40,9 @@ var bucket_count: int
 @onready var particles_mesh_instance: MeshInstance3D = $ParticlesMeshInstance
 @onready var main_camera: MainCamera = $MainCamera
 
-var particle_material: ShaderMaterial
+var depth_material: ShaderMaterial
+var normal_material: ShaderMaterial
+var thickness_material: ShaderMaterial
 
 var particle_data_image: Image
 var particle_data_texture_rd: Texture2DRD
@@ -115,11 +117,20 @@ func _mesh_setup():
 	arr_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_POINTS, arrays)
 	particles_mesh_instance.mesh = arr_mesh
 	
-	particle_material = particles_mesh_instance.material_override as ShaderMaterial
-	particle_material.set_shader_parameter("particle_count", particle_count)
-	particle_material.set_shader_parameter("particle_size", particle_size)
-	particle_material.set_shader_parameter("image_size", image_size)
-	particle_material.set_shader_parameter("origin", origin)
+	depth_material = particles_mesh_instance.material_override as ShaderMaterial
+	_set_shader_parameters(depth_material)
+	normal_material = depth_material.next_pass as ShaderMaterial
+	_set_shader_parameters(normal_material)
+	thickness_material = normal_material.next_pass as ShaderMaterial
+	_set_shader_parameters(thickness_material)
+	
+func _set_shader_parameters(material: ShaderMaterial) -> void:
+	material.set_shader_parameter("particle_count", particle_count)
+	material.set_shader_parameter("particle_size", particle_size)
+	material.set_shader_parameter("image_size", image_size)
+	material.set_shader_parameter("origin", origin)
+	material.set_shader_parameter("camera_near", main_camera.near)
+	material.set_shader_parameter("camera_far", main_camera.far)
 
 func _input(event):
 	if event is InputEventMouseMotion:
@@ -146,7 +157,10 @@ func _setup_shaders() -> void:
 	particle_data_buffer = rd.texture_create(fmt, view, [particle_data_image.get_data()])
 	particle_data_texture_rd = Texture2DRD.new()
 	particle_data_texture_rd.texture_rd_rid = particle_data_buffer # Connect texture to buffer
-	particle_material.set_shader_parameter("particle_data", particle_data_texture_rd) # Texture stored by reference, will be updated in the particle shader once the compute shader edits it
+	
+	depth_material.set_shader_parameter("particle_data", particle_data_texture_rd) # Texture stored by reference, will be updated in the particle shader once the compute shader edits it
+	normal_material.set_shader_parameter("particle_data", particle_data_texture_rd)
+	thickness_material.set_shader_parameter("particle_data", particle_data_texture_rd)
 
 	# Load compute shaders
 	var clear_bucket_counts_shader := _create_compute_shader(load("res://3d/shaders/compute/clear_bucket_counts_3d.glsl"))

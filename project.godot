@@ -13,7 +13,6 @@ config_version=5
 config/name="Particle Fluid Simulation"
 run/main_scene="uid://mri7qt1dachx"
 config/features=PackedStringArray("4.4", "Forward Plus")
-run/max_fps=120
 boot_splash/show_image=false
 
 [debug]
