@@ -1,7 +1,7 @@
 extends Node3D
 
 @export var particle_count: int = 4096
-@export var particle_size: float = 25
+@export var particle_size: float = 10000
 @export var smoothing_radius: float = 50
 @export var particle_mass: float = 500.0
 @export var target_density: float = 0.1
@@ -11,7 +11,6 @@ extends Node3D
 @export_range(0, 1) var elasticity: float = 0.95
 @export var viscosity: float = 100
 @export var steps_per_frame: int = 1
-@export var gradient: Gradient
 @export var bounds: Vector3 = Vector3(500, 250, 250)
 @export var origin: Vector3 = Vector3(-250, 0, -125)
 @export var mouse_force_multiplier: float = 200
@@ -40,9 +39,8 @@ var bucket_count: int
 @onready var particles_mesh_instance: MeshInstance3D = $ParticlesMeshInstance
 @onready var main_camera: MainCamera = $MainCamera
 
-var depth_material: ShaderMaterial
-var normal_material: ShaderMaterial
-var thickness_material: ShaderMaterial
+var opaque_material: ShaderMaterial
+var transparent_material: ShaderMaterial
 
 var particle_data_image: Image
 var particle_data_texture_rd: Texture2DRD
@@ -117,12 +115,10 @@ func _mesh_setup():
 	arr_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_POINTS, arrays)
 	particles_mesh_instance.mesh = arr_mesh
 	
-	depth_material = particles_mesh_instance.material_override as ShaderMaterial
-	_set_shader_parameters(depth_material)
-	normal_material = depth_material.next_pass as ShaderMaterial
-	_set_shader_parameters(normal_material)
-	thickness_material = normal_material.next_pass as ShaderMaterial
-	_set_shader_parameters(thickness_material)
+	opaque_material = particles_mesh_instance.material_override as ShaderMaterial
+	_set_shader_parameters(opaque_material)
+	transparent_material = opaque_material.next_pass as ShaderMaterial
+	_set_shader_parameters(transparent_material)
 	
 func _set_shader_parameters(material: ShaderMaterial) -> void:
 	material.set_shader_parameter("particle_count", particle_count)
@@ -158,9 +154,8 @@ func _setup_shaders() -> void:
 	particle_data_texture_rd = Texture2DRD.new()
 	particle_data_texture_rd.texture_rd_rid = particle_data_buffer # Connect texture to buffer
 	
-	depth_material.set_shader_parameter("particle_data", particle_data_texture_rd) # Texture stored by reference, will be updated in the particle shader once the compute shader edits it
-	normal_material.set_shader_parameter("particle_data", particle_data_texture_rd)
-	thickness_material.set_shader_parameter("particle_data", particle_data_texture_rd)
+	opaque_material.set_shader_parameter("particle_data", particle_data_texture_rd) # Texture stored by reference, will be updated in the particle shader once the compute shader edits it
+	transparent_material.set_shader_parameter("particle_data", particle_data_texture_rd)
 
 	# Load compute shaders
 	var clear_bucket_counts_shader := _create_compute_shader(load("res://3d/shaders/compute/clear_bucket_counts_3d.glsl"))

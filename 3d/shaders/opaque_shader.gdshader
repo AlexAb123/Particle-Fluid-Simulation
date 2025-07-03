@@ -13,7 +13,6 @@ uniform float camera_far;
 varying vec3 world_pos;
 
 void vertex() {
-	if (CAMERA_VISIBLE_LAYERS != 4u) VERTEX = vec3(1.0 / 0.0); // Discard if not in normal layer
 	int index = int(VERTEX.x);
 	VERTEX.x = float(index);
 	ivec2 pixel_coord = ivec2(index % image_size, index / image_size);
@@ -23,26 +22,30 @@ void vertex() {
 }
 
 void fragment() {
-	
-	if (CAMERA_VISIBLE_LAYERS != 4u) discard; // Discard if not in normal layer
-	
 	vec2 center_offset = POINT_COORD - vec2(0.5); // vec2(0.5) is the center
-	if (length(center_offset) > 0.5) discard;
-	float linear_depth = distance(CAMERA_POSITION_WORLD, world_pos);
-	float z_offset = sqrt(0.25 - dot(center_offset, center_offset)); // Solve for z: x^2 + y^2 + z^2 = R^2
-	float z_offset_world = z_offset * particle_size / max(0.01, linear_depth); // Transform z_offset into world coordinates
-    float sphere_linear_depth = linear_depth - z_offset_world; // Adjust linear depth for rounded surface of the sphere
-    float depth = 1.0 - ((sphere_linear_depth - camera_near) / (camera_far - camera_near)); // Convert to depth buffer value
-    
-    DEPTH = clamp(depth, 0.0, 1.0);
+	float squared_center_offset = dot(center_offset, center_offset);
+	if (squared_center_offset > 0.25) discard;
 	
-	if (CAMERA_VISIBLE_LAYERS == 2u) { // Depth Layer
-    	ALBEDO = vec3(clamp(depth, 0.0, 1.0));
+	float linear_depth = distance(CAMERA_POSITION_WORLD, world_pos);
+	float z_offset = sqrt(0.25 - squared_center_offset); // Solve for z: x^2 + y^2 + z^2 = R^2
+	float z_offset_world = z_offset * particle_size / max(0.01, linear_depth); // Transform z_offset into world coordinates
+	float sphere_linear_depth = linear_depth - z_offset_world; // Adjust linear depth for rounded surface of the sphere
+	float depth = 1.0 - ((sphere_linear_depth - camera_near) / (camera_far - camera_near)); // Convert to depth buffer value
+	DEPTH = clamp(depth, 0.0, 1.0);
+	
+	if (CAMERA_VISIBLE_LAYERS == 2u) { // Depth layer
+		ALBEDO = vec3(clamp(depth, 0.0, 1.0));
 	}
 	
-    vec3 local_normal = normalize(vec3(center_offset.x, center_offset.y, z_offset));
-    vec3 world_normal = normalize((MODEL_MATRIX * vec4(local_normal, 0.0)).xyz);
-    ALBEDO = world_normal * 0.5 + 0.5;
+	if (CAMERA_VISIBLE_LAYERS == 4u) { // Normal layer
+	    vec3 local_normal = normalize(vec3(center_offset.x, center_offset.y, z_offset));
+	    vec3 world_normal = normalize((MODEL_MATRIX * vec4(local_normal, 0.0)).xyz);
+	    ALBEDO = world_normal * 0.5 + 0.5; // Map to [0, 1]
+	}
+	
+	if (CAMERA_VISIBLE_LAYERS == 8u){ // Thickness layer
+		discard;
+	}
 
 }
 

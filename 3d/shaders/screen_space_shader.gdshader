@@ -11,12 +11,12 @@ void vertex() {
 }
 
 void fragment() {
-	
+
 	// Called for every pixel the material is visible on.
 	vec4 depth = texture(depth_texture, UV);
 	vec4 normal = texture(normal_texture, UV);
 	vec4 thickness = texture(thickness_texture, UV);
-	
+
 	COLOR = depth;
 }
 

@@ -1,14 +1,12 @@
-[gd_scene load_steps=14 format=3 uid="uid://mri7qt1dachx"]
+[gd_scene load_steps=11 format=3 uid="uid://mri7qt1dachx"]
 
 [ext_resource type="Script" uid="uid://b86qyi0h5e8km" path="res://3d/scripts/screen_space_rendering.gd" id="1_edfdb"]
-[ext_resource type="Gradient" uid="uid://63hsra8pvfe1" path="res://assets/gradient.tres" id="2_402sr"]
 [ext_resource type="PackedScene" uid="uid://66tdse57wb7m" path="res://3d/scenes/main_camera.tscn" id="3_7k8hm"]
-[ext_resource type="Shader" uid="uid://c1s1p0nsbrfvb" path="res://3d/shaders/thickness_shader.gdshader" id="3_31lt2"]
-[ext_resource type="Shader" uid="uid://bbvuo4tjia7gb" path="res://3d/shaders/normal_shader.gdshader" id="4_rts0p"]
-[ext_resource type="Shader" uid="uid://chcmnams6yqjj" path="res://3d/shaders/depth_shader.gdshader" id="5_mipmy"]
+[ext_resource type="Shader" uid="uid://c1s1p0nsbrfvb" path="res://3d/shaders/transparent_shader.gdshader" id="3_31lt2"]
+[ext_resource type="Shader" uid="uid://chcmnams6yqjj" path="res://3d/shaders/opaque_shader.gdshader" id="5_mipmy"]
 [ext_resource type="Shader" uid="uid://cnx6dlugpmwgp" path="res://3d/shaders/ground_shader.gdshader" id="6_7k8hm"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_8wpq0"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7k8hm"]
 render_priority = 0
 shader = ExtResource("3_31lt2")
 shader_parameter/particle_count = 0
@@ -18,20 +16,9 @@ shader_parameter/origin = Vector3(0, 0, 0)
 shader_parameter/camera_near = 0.0
 shader_parameter/camera_far = 0.0
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_14y3m"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_31lt2"]
 render_priority = 0
-next_pass = SubResource("ShaderMaterial_8wpq0")
-shader = ExtResource("4_rts0p")
-shader_parameter/particle_count = 0
-shader_parameter/particle_size = 0.0
-shader_parameter/image_size = 0
-shader_parameter/origin = Vector3(0, 0, 0)
-shader_parameter/camera_near = 0.0
-shader_parameter/camera_far = 0.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_7k8hm"]
-render_priority = 0
-next_pass = SubResource("ShaderMaterial_14y3m")
+next_pass = SubResource("ShaderMaterial_7k8hm")
 shader = ExtResource("5_mipmy")
 shader_parameter/particle_count = 0
 shader_parameter/particle_size = 0.0
@@ -53,16 +40,10 @@ size = Vector2(2500, 2500)
 
 [node name="ScreenSpaceRendering" type="Node3D"]
 script = ExtResource("1_edfdb")
-particle_count = 100000
-particle_size = 10000.0
-target_density = 0.8
-viscosity = 250.0
-gradient = ExtResource("2_402sr")
-bounds = Vector3(1000, 750, 500)
 
 [node name="ParticlesMeshInstance" type="MeshInstance3D" parent="."]
 layers = 14
-material_override = SubResource("ShaderMaterial_7k8hm")
+material_override = SubResource("ShaderMaterial_31lt2")
 mesh = SubResource("ArrayMesh_402sr")
 
 [node name="MainCamera" parent="." instance=ExtResource("3_7k8hm")]
