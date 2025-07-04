@@ -6,9 +6,7 @@ void vertex() {
 }
 
 void fragment() {
-	COLOR.a *= 5.0;
-	COLOR.rg = vec2(0);
-	COLOR.b = 0.75;
+
 }
 
 //void light() {

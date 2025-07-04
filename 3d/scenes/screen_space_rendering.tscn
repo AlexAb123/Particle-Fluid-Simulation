@@ -1,8 +1,9 @@
-[gd_scene load_steps=11 format=3 uid="uid://mri7qt1dachx"]
+[gd_scene load_steps=12 format=3 uid="uid://mri7qt1dachx"]
 
 [ext_resource type="Script" uid="uid://b86qyi0h5e8km" path="res://3d/scripts/screen_space_rendering.gd" id="1_edfdb"]
 [ext_resource type="PackedScene" uid="uid://66tdse57wb7m" path="res://3d/scenes/main_camera.tscn" id="3_7k8hm"]
 [ext_resource type="Shader" uid="uid://c1s1p0nsbrfvb" path="res://3d/shaders/screen_space/transparent_shader.gdshader" id="3_31lt2"]
+[ext_resource type="Texture2D" uid="uid://efae6kfkkmug" path="res://assets/gradient_texture.tres" id="4_7k8hm"]
 [ext_resource type="Shader" uid="uid://chcmnams6yqjj" path="res://3d/shaders/screen_space/opaque_shader.gdshader" id="5_mipmy"]
 [ext_resource type="Shader" uid="uid://cnx6dlugpmwgp" path="res://3d/shaders/ground_shader.gdshader" id="6_7k8hm"]
 
@@ -26,6 +27,7 @@ shader_parameter/image_size = 0
 shader_parameter/origin = Vector3(0, 0, 0)
 shader_parameter/camera_near = 0.0
 shader_parameter/camera_far = 0.0
+shader_parameter/gradient_texture = ExtResource("4_7k8hm")
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_402sr"]
 custom_aabb = AABB(-10000, -10000, -10000, 20000, 20000, 20000)
@@ -40,9 +42,13 @@ size = Vector2(2500, 2500)
 
 [node name="ScreenSpaceRendering" type="Node3D"]
 script = ExtResource("1_edfdb")
+particle_count = 32000
+target_density = 0.3
+viscosity = 150.0
+bounds = Vector3(1000, 750, 500)
 
 [node name="ParticlesMeshInstance" type="MeshInstance3D" parent="."]
-layers = 14
+layers = 30
 material_override = SubResource("ShaderMaterial_31lt2")
 mesh = SubResource("ArrayMesh_402sr")
 

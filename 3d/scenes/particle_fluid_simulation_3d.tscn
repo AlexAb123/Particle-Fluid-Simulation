@@ -2,9 +2,13 @@
 
 [ext_resource type="Shader" uid="uid://ccqn3u82pxb38" path="res://3d/shaders/particle_shader_3d.gdshader" id="1_cjcay"]
 [ext_resource type="Script" uid="uid://dncwxg6w03r5s" path="res://3d/scripts/particle_fluid_simulation_3d.gd" id="1_s30ui"]
-[ext_resource type="Gradient" uid="uid://63hsra8pvfe1" path="res://assets/gradient.tres" id="2_ynkks"]
 [ext_resource type="Script" uid="uid://da51r6nsfo2wd" path="res://3d/scripts/main_camera.gd" id="4_1s01v"]
 [ext_resource type="Shader" uid="uid://cnx6dlugpmwgp" path="res://3d/shaders/ground_shader.gdshader" id="4_ecwoc"]
+
+[sub_resource type="Gradient" id="Gradient_1ikbc"]
+offsets = PackedFloat32Array(0, 0.419283, 0.697309, 0.894619, 1)
+colors = PackedColorArray(0, 0.613333, 0.92, 1, 0.1034, 0.94, 0.786623, 1, 0.581247, 0.96892, 0.0341119, 1, 1, 0.836, 0.18, 1, 1, 0.480667, 0.18, 1)
+metadata/_snap_count = 2
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_7gpfj"]
 shader = ExtResource("1_cjcay")
@@ -32,7 +36,8 @@ size = Vector2(2500, 2500)
 [node name="ParticleFluidSimulation3D" type="Node3D"]
 script = ExtResource("1_s30ui")
 particle_count = 4096
-gradient = ExtResource("2_ynkks")
+steps_per_frame = 0
+gradient = SubResource("Gradient_1ikbc")
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="."]
 fixed_fps = 120

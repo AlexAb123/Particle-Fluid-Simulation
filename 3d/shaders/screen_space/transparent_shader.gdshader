@@ -45,6 +45,10 @@ void fragment() {
 		ALBEDO = vec3(1);
 		ALPHA = 0.05;
 	}
+	
+	if (CAMERA_VISIBLE_LAYERS == 16u){ // Color layer
+		discard;
+	}
 }
 
 //void light() {

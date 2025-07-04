@@ -8,16 +8,19 @@ uniform int image_size;
 uniform vec3 origin;
 uniform float camera_near;
 uniform float camera_far;
+uniform sampler2D gradient_texture: repeat_disable;
 
 varying vec3 world_pos; // Position of center of sphere in world coordinates
 varying vec3 view_pos; // Position of center of sphere in camera coordinates
 varying float camera_distance; // Distance from center of sphere to camera
+varying vec4 particle_data_point;
 
 void vertex() {
 	int index = int(VERTEX.x);
 	VERTEX.x = float(index);
 	ivec2 pixel_coord = ivec2(index % image_size, index / image_size);
-	world_pos = origin + texelFetch(particle_data, pixel_coord, 0).xyz;
+	particle_data_point = texelFetch(particle_data, pixel_coord, 0);
+	world_pos = origin + particle_data_point.xyz;
 	view_pos = (VIEW_MATRIX * vec4(world_pos, 1.0)).xyz;
 	VERTEX.xyz = world_pos;
 	camera_distance = distance(CAMERA_POSITION_WORLD, world_pos);
@@ -47,5 +50,9 @@ void fragment() {
 
 	if (CAMERA_VISIBLE_LAYERS == 8u){ // Thickness layer
 		discard;
+	}
+
+	if (CAMERA_VISIBLE_LAYERS == 16u){ // Color layer
+		ALBEDO = texture(gradient_texture, vec2(particle_data_point.w/450.0, 0.5)).rgb;
 	}
 }

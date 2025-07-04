@@ -17,6 +17,10 @@ func _ready():
 	
 	parent_viewport.size_changed.connect(_update_viewports)
 	_update_viewports()
+	
+	for camera: Camera3D in cameras:
+		camera.near = near
+		camera.far = far
 
 func _update_viewports() -> void:
 	for viewport: SubViewport in viewports:

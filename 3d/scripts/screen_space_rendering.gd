@@ -15,8 +15,8 @@ extends Node3D
 @export var origin: Vector3 = Vector3(-250, 0, -125)
 @export var mouse_force_multiplier: float = 200
 @export var mouse_force_radius: float = 150
-@export var blur_size: int = 12
-@export var blur_strength: float = 7
+@export var blur_size: int = 30
+@export var blur_strength: float = 20
 @export var blur_depth_falloff: float = 0.02 # The higher this value is the more blurring will happen between particles of different depths
 
 var mouse_force_strength: float
