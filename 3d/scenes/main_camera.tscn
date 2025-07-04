@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://da51r6nsfo2wd" path="res://3d/scripts/main_camera.gd" id="1_vbit3"]
 [ext_resource type="Script" uid="uid://5wpp7ie0q33u" path="res://3d/scripts/attachable_sub_viewport.gd" id="2_nxp87"]
 [ext_resource type="Shader" uid="uid://p7x88q8m8joh" path="res://3d/shaders/screen_space/horizontal_blur.gdshader" id="3_w57sv"]
-[ext_resource type="Shader" uid="uid://qmod3sqf7jf8" path="res://3d/shaders/screen_space/vertical_blur.gdshader" id="4_w57sv"]
+[ext_resource type="Shader" uid="uid://bsp65i5ghy35g" path="res://3d/shaders/screen_space/post_processing.gdshader" id="4_w57sv"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_w57sv"]
 viewport_path = NodePath("DepthViewport")
@@ -12,23 +12,24 @@ viewport_path = NodePath("DepthViewport")
 resource_local_to_scene = true
 shader = ExtResource("3_w57sv")
 shader_parameter/depth_texture = SubResource("ViewportTexture_w57sv")
+shader_parameter/blur_size = 0
+shader_parameter/blur_strength = 0.0
+shader_parameter/blur_depth_falloff = 0.0
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_8nd1s"]
-viewport_path = NodePath("NormalViewport")
-
-[sub_resource type="ViewportTexture" id="ViewportTexture_nxp87"]
-viewport_path = NodePath("DepthViewport")
+viewport_path = NodePath("ThicknessViewport")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_8nd1s"]
-resource_local_to_scene = true
 shader = ExtResource("4_w57sv")
-shader_parameter/depth_texture = SubResource("ViewportTexture_nxp87")
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_iq1th"]
 viewport_path = NodePath("PostProcessing1")
 
+[sub_resource type="ViewportTexture" id="ViewportTexture_ffdne"]
+viewport_path = NodePath("PostProcessing2")
+
 [sub_resource type="ViewportTexture" id="ViewportTexture_8opor"]
-viewport_path = NodePath("NormalViewport")
+viewport_path = NodePath("PostProcessing3")
 
 [node name="MainCamera" type="Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 0, 0)
@@ -74,6 +75,15 @@ transparent_bg = true
 [node name="TextureRect" type="TextureRect" parent="PostProcessing2"]
 material = SubResource("ShaderMaterial_8nd1s")
 texture = SubResource("ViewportTexture_iq1th")
+expand_mode = 2
+stretch_mode = 4
+
+[node name="PostProcessing3" type="SubViewport" parent="."]
+transparent_bg = true
+
+[node name="TextureRect" type="TextureRect" parent="PostProcessing3"]
+material = SubResource("ShaderMaterial_8nd1s")
+texture = SubResource("ViewportTexture_ffdne")
 expand_mode = 2
 stretch_mode = 4
 

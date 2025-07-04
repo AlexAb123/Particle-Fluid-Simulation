@@ -10,6 +10,7 @@ class_name MainCamera
 @onready var output_texture_rect: TextureRect = $OutputTextureRect
 @onready var texture_rect1: TextureRect = $PostProcessing1/TextureRect
 @onready var texture_rect2: TextureRect = $PostProcessing2/TextureRect
+@onready var texture_rect3: TextureRect = $PostProcessing3/TextureRect
 
 func _ready():
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -23,6 +24,7 @@ func _update_viewports() -> void:
 	output_texture_rect.size = parent_viewport.size
 	texture_rect1.size = parent_viewport.size
 	texture_rect2.size = parent_viewport.size
+	texture_rect3.size = parent_viewport.size
 
 func _input(event):
 	

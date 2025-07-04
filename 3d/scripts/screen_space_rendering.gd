@@ -15,6 +15,9 @@ extends Node3D
 @export var origin: Vector3 = Vector3(-250, 0, -125)
 @export var mouse_force_multiplier: float = 200
 @export var mouse_force_radius: float = 150
+@export var blur_size: int = 12
+@export var blur_strength: float = 7
+@export var blur_depth_falloff: float = 0.02 # The higher this value is the more blurring will happen between particles of different depths
 
 var mouse_force_strength: float
 var mouse_position: Vector3
@@ -92,6 +95,15 @@ func _ready():
 	bucket_count = grid_width * grid_height * grid_depth
 	
 	particle_data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAH)
+	
+	var material1 = main_camera.texture_rect1.material as ShaderMaterial
+	material1.set_shader_parameter("blur_size", blur_size)
+	material1.set_shader_parameter("blur_strength", blur_strength)
+	material1.set_shader_parameter("blur_depth_falloff", blur_depth_falloff)
+	var material2 = main_camera.texture_rect2.material as ShaderMaterial
+	material2.set_shader_parameter("blur_size", blur_size)
+	material2.set_shader_parameter("blur_strength", blur_strength)
+	material2.set_shader_parameter("blur_depth_falloff", blur_depth_falloff)
 	
 	for i in range(particle_count):
 		#positions.append(Vector4(randf() * bounds.x, randf() * bounds.y, randf() * bounds.z, 0))

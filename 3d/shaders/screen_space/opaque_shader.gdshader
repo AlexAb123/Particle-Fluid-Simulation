@@ -40,38 +40,9 @@ void fragment() {
 		ALBEDO = vec3(clamp(depth, 0.0, 1.0));
 	}
 
-	if (CAMERA_VISIBLE_LAYERS == 4u) { // Normal layer - store world-space normals
-		// Calculate the actual 3D world position of this pixel on the sphere surface
-		// We need to reconstruct the 3D position from the billboard coordinates
-
-		// Get camera direction to sphere center
-		vec3 camera_to_sphere = normalize(world_pos - CAMERA_POSITION_WORLD);
-
-		// Create a consistent world-space coordinate system for the billboard
-		// Use fixed world axes instead of camera-relative axes
-		vec3 world_up = vec3(0.0, 1.0, 0.0);
-		vec3 world_right = normalize(cross(world_up, camera_to_sphere));
-		vec3 corrected_up = normalize(cross(camera_to_sphere, world_right));
-
-		// Handle degenerate case when camera_to_sphere is parallel to world_up
-		if (length(world_right) < 0.001) {
-			world_right = vec3(1.0, 0.0, 0.0);
-			corrected_up = vec3(0.0, 0.0, 1.0);
-		}
-
-		// Calculate the actual world position of this pixel on the sphere surface
-		float sphere_radius = particle_size * 0.5;
-		vec3 local_offset = vec3(center_offset.x, center_offset.y, z_offset) * sphere_radius;
-		vec3 world_surface_pos = world_pos +
-			world_right * local_offset.x +
-			corrected_up * local_offset.y +
-			camera_to_sphere * local_offset.z;
-
-		// True world-space normal: direction from sphere center to surface point
-		vec3 world_normal = normalize(world_surface_pos - world_pos);
-
-		// Store world-space normal
-		ALBEDO = world_normal * 0.5 + 0.5; // Encode as RGB [0,1]
+	if (CAMERA_VISIBLE_LAYERS == 4u) { // Normal layer
+		vec3 normal = vec3(center_offset.x, center_offset.y, z_offset);
+		ALBEDO = normal * 0.5 + 0.5;
 	}
 
 	if (CAMERA_VISIBLE_LAYERS == 8u){ // Thickness layer
