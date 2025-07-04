@@ -50,6 +50,7 @@ bounds = Vector3(1000, 750, 500)
 [node name="ParticlesMeshInstance" type="MeshInstance3D" parent="."]
 layers = 30
 material_override = SubResource("ShaderMaterial_31lt2")
+ignore_occlusion_culling = true
 mesh = SubResource("ArrayMesh_402sr")
 
 [node name="MainCamera" parent="." instance=ExtResource("3_7k8hm")]
