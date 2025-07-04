@@ -15,7 +15,8 @@ extends Node3D
 @export var origin: Vector3 = Vector3(-250, 0, -125)
 @export var mouse_force_multiplier: float = 200
 @export var mouse_force_radius: float = 150
-@export var blur_size: int = 30
+@export var blur_size: int = 5
+@export var max_blur_size_pixels: int = 20;
 @export var blur_strength: float = 20
 @export var blur_depth_falloff: float = 0.02 # The higher this value is the more blurring will happen between particles of different depths
 
@@ -97,13 +98,17 @@ func _ready():
 	particle_data_image = Image.create(image_size, image_size, false, Image.FORMAT_RGBAH)
 	
 	var material1 = main_camera.texture_rect1.material as ShaderMaterial
-	material1.set_shader_parameter("blur_size", blur_size)
-	material1.set_shader_parameter("blur_strength", blur_strength)
-	material1.set_shader_parameter("blur_depth_falloff", blur_depth_falloff)
 	var material2 = main_camera.texture_rect2.material as ShaderMaterial
-	material2.set_shader_parameter("blur_size", blur_size)
-	material2.set_shader_parameter("blur_strength", blur_strength)
-	material2.set_shader_parameter("blur_depth_falloff", blur_depth_falloff)
+	var post_processing_materials = [material1, material2]
+	for material in post_processing_materials:
+		material.set_shader_parameter("blur_size", blur_size)
+		material.set_shader_parameter("blur_strength", blur_strength)
+		material.set_shader_parameter("blur_depth_falloff", blur_depth_falloff)
+		material.set_shader_parameter("camera_near", main_camera.near)
+		material.set_shader_parameter("camera_far", main_camera.far)
+		material.set_shader_parameter("PROJECTION_MATRIX", main_camera.get_camera_projection())
+		material.set_shader_parameter("max_blur_size_pixels", max_blur_size_pixels)
+
 	
 	for i in range(particle_count):
 		#positions.append(Vector4(randf() * bounds.x, randf() * bounds.y, randf() * bounds.z, 0))
