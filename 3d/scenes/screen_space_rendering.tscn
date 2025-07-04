@@ -2,11 +2,11 @@
 
 [ext_resource type="Script" uid="uid://b86qyi0h5e8km" path="res://3d/scripts/screen_space_rendering.gd" id="1_edfdb"]
 [ext_resource type="PackedScene" uid="uid://66tdse57wb7m" path="res://3d/scenes/main_camera.tscn" id="3_7k8hm"]
-[ext_resource type="Shader" uid="uid://c1s1p0nsbrfvb" path="res://3d/shaders/transparent_shader.gdshader" id="3_31lt2"]
-[ext_resource type="Shader" uid="uid://chcmnams6yqjj" path="res://3d/shaders/opaque_shader.gdshader" id="5_mipmy"]
+[ext_resource type="Shader" uid="uid://c1s1p0nsbrfvb" path="res://3d/shaders/screen_space/transparent_shader.gdshader" id="3_31lt2"]
+[ext_resource type="Shader" uid="uid://chcmnams6yqjj" path="res://3d/shaders/screen_space/opaque_shader.gdshader" id="5_mipmy"]
 [ext_resource type="Shader" uid="uid://cnx6dlugpmwgp" path="res://3d/shaders/ground_shader.gdshader" id="6_7k8hm"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_7k8hm"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mipmy"]
 render_priority = 0
 shader = ExtResource("3_31lt2")
 shader_parameter/particle_count = 0
@@ -18,7 +18,7 @@ shader_parameter/camera_far = 0.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_31lt2"]
 render_priority = 0
-next_pass = SubResource("ShaderMaterial_7k8hm")
+next_pass = SubResource("ShaderMaterial_mipmy")
 shader = ExtResource("5_mipmy")
 shader_parameter/particle_count = 0
 shader_parameter/particle_size = 0.0

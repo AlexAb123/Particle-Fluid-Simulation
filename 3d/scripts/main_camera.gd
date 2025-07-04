@@ -7,6 +7,9 @@ class_name MainCamera
 @onready var viewports: Array[Node] = find_children("*", "SubViewport")
 @onready var cameras: Array[Node] = find_children("*", "Camera3D")
 @onready var parent_viewport: Viewport = get_viewport()
+@onready var output_texture_rect: TextureRect = $OutputTextureRect
+@onready var texture_rect1: TextureRect = $PostProcessing1/TextureRect
+@onready var texture_rect2: TextureRect = $PostProcessing2/TextureRect
 
 func _ready():
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -17,6 +20,9 @@ func _ready():
 func _update_viewports() -> void:
 	for viewport: SubViewport in viewports:
 		viewport.size = parent_viewport.size
+	output_texture_rect.size = parent_viewport.size
+	texture_rect1.size = parent_viewport.size
+	texture_rect2.size = parent_viewport.size
 
 func _input(event):
 	
