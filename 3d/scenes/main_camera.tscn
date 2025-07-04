@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://5wpp7ie0q33u" path="res://3d/scripts/attachable_sub_viewport.gd" id="2_nxp87"]
 [ext_resource type="Shader" uid="uid://chf7p3bvqjybk" path="res://3d/shaders/screen_space/normal_shader.gdshader" id="3_8nd1s"]
 [ext_resource type="Shader" uid="uid://p7x88q8m8joh" path="res://3d/shaders/screen_space/horizontal_blur.gdshader" id="3_w57sv"]
-[ext_resource type="Shader" uid="uid://bsp65i5ghy35g" path="res://3d/shaders/screen_space/post_processing.gdshader" id="4_w57sv"]
+[ext_resource type="Shader" uid="uid://qmod3sqf7jf8" path="res://3d/shaders/screen_space/vertical_blur.gdshader" id="5_8nd1s"]
 
 [sub_resource type="World3D" id="World3D_8nd1s"]
 
@@ -46,7 +46,14 @@ shader_parameter/max_blur_size_pixels = 0
 viewport_path = NodePath("NormalViewport")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_8nd1s"]
-shader = ExtResource("4_w57sv")
+shader = ExtResource("5_8nd1s")
+shader_parameter/blur_size = 0
+shader_parameter/blur_strength = 0.0
+shader_parameter/blur_depth_falloff = 0.0
+shader_parameter/camera_near = 0.0
+shader_parameter/camera_far = 0.0
+shader_parameter/PROJECTION_MATRIX = Projection(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
+shader_parameter/max_blur_size_pixels = 0
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_iq1th"]
 viewport_path = NodePath("PostProcessing1")
@@ -55,7 +62,7 @@ viewport_path = NodePath("PostProcessing1")
 viewport_path = NodePath("PostProcessing2")
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_8opor"]
-viewport_path = NodePath("NormalViewport")
+viewport_path = NodePath("PostProcessing3")
 
 [node name="MainCamera" type="Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 0, 0)

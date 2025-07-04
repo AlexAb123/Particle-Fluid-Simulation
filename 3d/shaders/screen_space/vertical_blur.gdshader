@@ -32,10 +32,11 @@ int get_blur_size_pixels(float depth, sampler2D tex) {
 
 void fragment() {
 	vec2 texel_size = 1.0 / vec2(textureSize(TEXTURE, 0));
-	float depth = texture(depth_texture, UV).r;
+	vec4 depth = texture(depth_texture, UV);
+	if (depth.a == 0.0) discard;
 	vec4 color = vec4(0);
 	float total_weight = 0.0;
-	int blur_size_pixels = min(max_blur_size_pixels, get_blur_size_pixels(depth, TEXTURE));
+	int blur_size_pixels = min(max_blur_size_pixels, get_blur_size_pixels(depth.r, TEXTURE));
 	for (int i = -blur_size_pixels; i <= blur_size_pixels; i++) {
 		vec2 offset = vec2(0.0, float(i) * texel_size.y);
 		vec4 sample_color = texture(TEXTURE, UV + offset);
@@ -43,7 +44,7 @@ void fragment() {
 		if (sample_color.a == 0.0) continue;
 		float spatial_weight = gaussian(float(i), blur_strength);
 		float sample_depth = texture(depth_texture, UV + offset).r;
-		float depth_weight = gaussian(sample_depth - depth, blur_depth_falloff);
+		float depth_weight = gaussian(sample_depth - depth.r, blur_depth_falloff);
 
     	float combined_weight = spatial_weight * depth_weight;
 		color += sample_color * combined_weight;
