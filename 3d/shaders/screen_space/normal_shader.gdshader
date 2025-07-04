@@ -31,9 +31,8 @@ void fragment() {
 	vec3 ddy = get_view_pos(SCREEN_UV + vec2(0.0, step_size.y), INV_PROJECTION_MATRIX) - center_pos;
 	
 	vec3 view_normal = normalize(cross(ddy, ddx));
-	vec3 world_normal = (VIEW_MATRIX  * vec4(view_normal, 0.0)).xyz;
-	//ALBEDO = world_normal * 0.5 + 0.5;
-	ALBEDO = normalize(world_normal);
+	vec3 world_normal = (INV_VIEW_MATRIX  * vec4(view_normal, 0.0)).xyz;
+	ALBEDO = world_normal * 0.5 + 0.5;
 }
 
 //void light() {

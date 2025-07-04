@@ -59,7 +59,6 @@ viewport_path = NodePath("NormalViewport")
 
 [node name="MainCamera" type="Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 0, 0)
-far = 2000.0
 script = ExtResource("1_vbit3")
 
 [node name="DepthViewport" type="SubViewport" parent="." node_paths=PackedStringArray("camera")]
