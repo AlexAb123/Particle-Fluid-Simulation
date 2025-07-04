@@ -44,8 +44,9 @@ void fragment() {
 	}
 
 	if (CAMERA_VISIBLE_LAYERS == 4u) { // Normal layer
-		vec3 normal = vec3(center_offset.x, center_offset.y, z_offset);
-		ALBEDO = normal * 0.5 + 0.5;
+		//vec3 normal = vec3(center_offset.x, center_offset.y, z_offset);
+		//ALBEDO = normal * 0.5 + 0.5;
+		discard;
 	}
 
 	if (CAMERA_VISIBLE_LAYERS == 8u){ // Thickness layer

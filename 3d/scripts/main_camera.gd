@@ -21,7 +21,8 @@ func _ready():
 	for camera: Camera3D in cameras:
 		camera.near = near
 		camera.far = far
-
+	
+	print(len(cameras));
 func _update_viewports() -> void:
 	for viewport: SubViewport in viewports:
 		viewport.size = parent_viewport.size
