@@ -11,6 +11,7 @@ class_name MainCamera
 @onready var texture_rect1: TextureRect = $PostProcessing1/TextureRect
 @onready var texture_rect2: TextureRect = $PostProcessing2/TextureRect
 @onready var texture_rect3: TextureRect = $PostProcessing3/TextureRect
+@onready var normal_mesh: MeshInstance3D = $NormalViewport/NormalCamera/NormalMesh
 
 func _ready():
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -21,8 +22,11 @@ func _ready():
 	for camera: Camera3D in cameras:
 		camera.near = near
 		camera.far = far
+		
+	var normal_material = normal_mesh.material_override as ShaderMaterial
+	normal_material.set_shader_parameter("camera_near", near)
+	normal_material.set_shader_parameter("camera_far", far)
 	
-	print(len(cameras));
 func _update_viewports() -> void:
 	for viewport: SubViewport in viewports:
 		viewport.size = parent_viewport.size
@@ -36,7 +40,7 @@ func _input(event):
 	if event is InputEventMouseMotion:
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 			rotation.y -= event.relative.x * sensitivity
-			rotation.x = clamp(rotation.x - event.relative.y * sensitivity, -PI/2, PI/2)
+			rotation.x = clamp(rotation.x - event.relative.y * sensitivity, -PI/2 + 0.001, PI/2 - 0.001)
 		
 	if event.is_action_pressed("ui_cancel"):
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:

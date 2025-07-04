@@ -88,6 +88,7 @@ var reorder_copy_back_uniform_set: RID
 
 func _ready():
 	
+	
 	image_size = int(ceil(sqrt(particle_count)))
 	
 	grid_width = int(ceil(bounds.x / smoothing_radius))

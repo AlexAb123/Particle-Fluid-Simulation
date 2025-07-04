@@ -40,7 +40,7 @@ void fragment() {
 	DEPTH = depth;
 
 	if (CAMERA_VISIBLE_LAYERS == 2u) { // Depth layer
-		ALBEDO = vec3(clamp(depth, 0.0, 1.0));
+		ALBEDO = vec3(depth);
 	}
 
 	if (CAMERA_VISIBLE_LAYERS == 4u) { // Normal layer
