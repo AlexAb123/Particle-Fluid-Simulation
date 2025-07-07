@@ -42,9 +42,10 @@ size = Vector2(2500, 2500)
 
 [node name="ScreenSpaceRendering" type="Node3D"]
 script = ExtResource("1_edfdb")
+particle_size = 25000.0
+target_density = 0.2
 blur_size = 7
-blur_strength = 10.0
-blur_depth_factor = 100.0
+blur_depth_factor = 0.1
 
 [node name="ParticlesMeshInstance" type="MeshInstance3D" parent="."]
 layers = 30
