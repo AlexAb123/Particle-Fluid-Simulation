@@ -1,33 +1,34 @@
 extends Node3D
 
-@export var particle_count: int = 4096
-@export var particle_size: float = 15000
-@export var smoothing_radius: float = 50
+@export var particle_count: int = 32768
+@export var particle_size: float = 30000.0
+@export var smoothing_radius: float = 75.0
 @export var particle_mass: float = 500.0
-@export var target_density: float = 0.1
+@export var target_density: float = 0.17
 @export var pressure_multiplier: float = 100000
 @export var near_pressure_multiplier: float = 50000
 @export var gravity: float = 150
 @export_range(0, 1) var elasticity: float = 0.95
-@export var viscosity: float = 100
+@export var viscosity: float = 200.0
 @export var steps_per_frame: int = 1
-@export var bounds: Vector3 = Vector3(500, 250, 250)
-@export var origin: Vector3 = Vector3(-250, 0, -125)
-@export var mouse_force_multiplier: float = 200
-@export var mouse_force_radius: float = 150
-@export var blur_size: int = 10
+@export var bounds: Vector3 = Vector3(1000, 500, 500)
+@export var mouse_force_multiplier: float = 200.0
+@export var mouse_force_radius: float = 200.0
+@export var blur_size: int = 5
 @export var max_blur_size_pixels: int = 20;
-@export var blur_strength: float = 20
-@export var blur_depth_falloff: float = 0.02 # The higher this value is the more blurring will happen between particles of different depths
+@export var blur_strength: float = 15.0
+@export var blur_depth_factor: float = 10 # The higher this value is the less blurring will happen between particles of different depths
 
 var mouse_force_strength: float
 var mouse_position: Vector3
 
 var workgroup_size: int = 256
 
-var density_kernel_factor: float = 15.0 / (pow(smoothing_radius, 5) * 2.0 * PI)
-var near_density_kernel_factor: float = 15.0 / (pow(smoothing_radius, 6) * PI)
-var viscosity_kernel_factor: float = 315.0 / (pow(smoothing_radius, 9) * 64.0 * PI)
+@onready var density_kernel_factor: float = 15.0 / (pow(smoothing_radius, 5) * 2.0 * PI)
+@onready var near_density_kernel_factor: float = 15.0 / (pow(smoothing_radius, 6) * PI)
+@onready var viscosity_kernel_factor: float = 315.0 / (pow(smoothing_radius, 9) * 64.0 * PI)
+@onready var origin := Vector3(-bounds.x/2.0, 0.0, -bounds.z/2.0)
+
 
 var positions: PackedVector4Array = PackedVector4Array()
 var velocities: PackedVector4Array = PackedVector4Array()
@@ -106,7 +107,7 @@ func _ready():
 	for material in post_processing_materials:
 		material.set_shader_parameter("blur_size", blur_size)
 		material.set_shader_parameter("blur_strength", blur_strength)
-		material.set_shader_parameter("blur_depth_falloff", blur_depth_falloff)
+		material.set_shader_parameter("blur_depth_factor", blur_depth_factor)
 		material.set_shader_parameter("camera_near", main_camera.near)
 		material.set_shader_parameter("camera_far", main_camera.far)
 		material.set_shader_parameter("PROJECTION_MATRIX", main_camera.get_camera_projection())

@@ -5,7 +5,7 @@ render_mode unshaded;
 uniform sampler2D depth_texture;
 uniform int blur_size;
 uniform float blur_strength;
-uniform float blur_depth_falloff;
+uniform float blur_depth_factor;
 uniform float camera_near;
 uniform float camera_far;
 uniform mat4 PROJECTION_MATRIX;
@@ -42,15 +42,17 @@ void fragment() {
 		vec4 sample_color = texture(TEXTURE, UV + offset);
 		
 		if (sample_color.a == 0.0) continue;
-		float spatial_weight = gaussian(float(i), blur_strength);
-		float sample_depth = texture(depth_texture, UV + offset).r;
-		float depth_weight = gaussian(sample_depth - depth.r, blur_depth_falloff);
-
+		float sigma = max(0.0001, float(blur_size_pixels) * blur_strength);
+		float spatial_weight = gaussian(float(i), sigma);
+		vec4 sample_depth = texture(depth_texture, UV +  offset);
+		float depth_difference = (depth.r) - (sample_depth.r);
+		float depth_weight = exp(-depth_difference * depth_difference * blur_depth_factor);
+		
     	float combined_weight = spatial_weight * depth_weight;
 		color += sample_color * combined_weight;
 		total_weight += combined_weight;
 	}
-	COLOR = color / float(total_weight);
+	COLOR = color / total_weight;
 }
 
 //void light() {
