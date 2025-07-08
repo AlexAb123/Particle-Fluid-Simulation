@@ -258,6 +258,6 @@ layers = 65
 mesh = SubResource("PlaneMesh_31lt2")
 
 [node name="Sun" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1500, 500, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1500, 1000, 0)
 layers = 65
 mesh = SubResource("SphereMesh_4ehcw")
