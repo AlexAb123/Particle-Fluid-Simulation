@@ -1,7 +1,6 @@
-[gd_scene load_steps=40 format=3 uid="uid://mri7qt1dachx"]
+[gd_scene load_steps=33 format=3 uid="uid://mri7qt1dachx"]
 
 [ext_resource type="Script" uid="uid://b86qyi0h5e8km" path="res://3d/scripts/screen_space_rendering.gd" id="1_edfdb"]
-[ext_resource type="Shader" uid="uid://iuycgvgvwepv" path="res://3d/shaders/screen_space/light_shader.gdshader" id="2_31lt2"]
 [ext_resource type="Shader" uid="uid://c1s1p0nsbrfvb" path="res://3d/shaders/screen_space/transparent_shader.gdshader" id="3_31lt2"]
 [ext_resource type="Texture2D" uid="uid://efae6kfkkmug" path="res://assets/gradient_texture.tres" id="4_7k8hm"]
 [ext_resource type="Shader" uid="uid://chcmnams6yqjj" path="res://3d/shaders/screen_space/depth_shader.gdshader" id="5_mipmy"]
@@ -13,43 +12,8 @@
 [ext_resource type="Shader" uid="uid://qmod3sqf7jf8" path="res://3d/shaders/screen_space/vertical_blur.gdshader" id="9_o60ek"]
 [ext_resource type="Shader" uid="uid://bsp65i5ghy35g" path="res://3d/shaders/screen_space/post_processing.gdshader" id="10_k1ele"]
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_4ehcw"]
-viewport_path = NodePath("MainCamera/NormalViewport")
-
-[sub_resource type="ViewportTexture" id="ViewportTexture_o60ek"]
-viewport_path = NodePath("MainCamera/ThicknessViewport")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_rts0p"]
-resource_local_to_scene = true
-render_priority = 0
-shader = ExtResource("2_31lt2")
-shader_parameter/particle_count = 0
-shader_parameter/particle_size = 0.0
-shader_parameter/image_size = 0
-shader_parameter/origin = Vector3(0, 0, 0)
-shader_parameter/camera_near = 0.0
-shader_parameter/camera_far = 0.0
-shader_parameter/normal_texture = SubResource("ViewportTexture_4ehcw")
-shader_parameter/thickness_texture = SubResource("ViewportTexture_o60ek")
-shader_parameter/water_color = Color(0.2349, 0.65664, 0.81, 1)
-shader_parameter/sky_color = Color(0.8, 0.9, 1, 1)
-shader_parameter/sun_color = Color(1, 0.8, 0.4, 1)
-shader_parameter/transparency = 0.5
-shader_parameter/sun_energy = 1.0
-shader_parameter/sun_reflection_strength = 1.5
-shader_parameter/sun_sharpness = 128.0
-shader_parameter/reflection_amount = 0.3
-shader_parameter/refraction_strength = 0.05
-shader_parameter/thickness_scale = 1.0
-shader_parameter/deep_water_color = Color(0, 0.266667, 0.8, 1)
-shader_parameter/extinction_coeffs = Vector3(0.45, 0.029, 0.018)
-shader_parameter/extinction_scale = 1.0
-shader_parameter/sun_direction = Vector3(0, 1, -0.5)
-shader_parameter/base_water_color = Color(1, 1, 1, 1)
-
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_mipmy"]
 render_priority = 0
-next_pass = SubResource("ShaderMaterial_rts0p")
 shader = ExtResource("3_31lt2")
 shader_parameter/particle_count = 0
 shader_parameter/particle_size = 0.0
@@ -86,32 +50,32 @@ shader_parameter/depth_texture = SubResource("ViewportTexture_k1ele")
 shader_parameter/camera_near = 0.0
 shader_parameter/camera_far = 0.0
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_iq1th"]
-resource_local_to_scene = true
-
 [sub_resource type="QuadMesh" id="QuadMesh_w57sv"]
-material = SubResource("ShaderMaterial_iq1th")
 flip_faces = true
 size = Vector2(2, 2)
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_vhsbl"]
+[sub_resource type="ViewportTexture" id="ViewportTexture_0a8k7"]
 viewport_path = NodePath("MainCamera/DepthViewport")
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_bbjqj"]
+[sub_resource type="ViewportTexture" id="ViewportTexture_c2ugv"]
 viewport_path = NodePath("MainCamera/NormalViewport")
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_c2533"]
+[sub_resource type="ViewportTexture" id="ViewportTexture_lhr72"]
 viewport_path = NodePath("MainCamera/ThicknessViewport")
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_fd41o"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_o60ek"]
 resource_local_to_scene = true
+render_priority = 0
 shader = ExtResource("10_k1ele")
-shader_parameter/depth_texture = SubResource("ViewportTexture_vhsbl")
-shader_parameter/normal_texture = SubResource("ViewportTexture_bbjqj")
-shader_parameter/thickness_texture = SubResource("ViewportTexture_c2533")
+shader_parameter/depth_texture = SubResource("ViewportTexture_0a8k7")
+shader_parameter/normal_texture = SubResource("ViewportTexture_c2ugv")
+shader_parameter/thickness_texture = SubResource("ViewportTexture_lhr72")
+shader_parameter/camera_near = 0.0
+shader_parameter/camera_far = 0.0
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_0a8k7"]
-viewport_path = NodePath("MainCamera/VerticalBlur")
+[sub_resource type="QuadMesh" id="QuadMesh_4ehcw"]
+flip_faces = true
+size = Vector2(2, 2)
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_usvkk"]
 viewport_path = NodePath("MainCamera/DepthViewport")
@@ -129,7 +93,7 @@ shader_parameter/PROJECTION_MATRIX = Projection(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
 shader_parameter/max_blur_size_pixels = 0
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_3tqik"]
-viewport_path = NodePath("MainCamera/NormalViewport")
+viewport_path = NodePath("MainCamera/PostProcessing")
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_ygy7n"]
 viewport_path = NodePath("MainCamera/DepthViewport")
@@ -150,7 +114,7 @@ shader_parameter/max_blur_size_pixels = 0
 viewport_path = NodePath("MainCamera/HorizontalBlur")
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_diene"]
-viewport_path = NodePath("MainCamera/VerticalBlur")
+viewport_path = NodePath("MainCamera/ThicknessViewport")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1s01v"]
 render_priority = 0
@@ -160,16 +124,8 @@ shader = ExtResource("6_7k8hm")
 material = SubResource("ShaderMaterial_1s01v")
 size = Vector2(2500, 2500)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7k8hm"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_31lt2"]
-size = Vector3(100, 100, 100)
-
 [node name="ScreenSpaceRendering" type="Node3D"]
 script = ExtResource("1_edfdb")
-particle_count = 16384
-target_density = 0.3
-bounds = Vector3(600, 400, 400)
 
 [node name="ParticlesMeshInstance" type="MeshInstance3D" parent="."]
 layers = 30
@@ -193,14 +149,12 @@ camera = NodePath("../DepthCamera")
 [node name="DepthCamera" type="Camera3D" parent="MainCamera"]
 cull_mask = 2
 
-[node name="NormalViewport" type="SubViewport" parent="MainCamera" node_paths=PackedStringArray("camera")]
+[node name="NormalViewport" type="SubViewport" parent="MainCamera"]
 own_world_3d = true
 world_3d = SubResource("World3D_8nd1s")
 transparent_bg = true
 use_hdr_2d = true
 canvas_item_default_texture_filter = 0
-script = ExtResource("7_o60ek")
-camera = NodePath("NormalCamera")
 
 [node name="NormalCamera" type="Camera3D" parent="MainCamera/NormalViewport"]
 transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 0, 0)
@@ -226,26 +180,19 @@ camera = NodePath("../ThicknessCamera")
 transform = Transform3D(1, 0, 0, 0, 0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0, 0)
 cull_mask = 8
 
-[node name="LightViewport" type="SubViewport" parent="MainCamera" node_paths=PackedStringArray("camera")]
-transparent_bg = true
-use_hdr_2d = true
-canvas_item_default_texture_filter = 0
-script = ExtResource("7_o60ek")
-camera = NodePath("../LightCamera")
-
-[node name="LightCamera" type="Camera3D" parent="MainCamera"]
-transform = Transform3D(1, 0, 0, 0, 0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0, 0)
-cull_mask = 16
-
 [node name="PostProcessing" type="SubViewport" parent="MainCamera"]
 transparent_bg = true
 use_hdr_2d = true
 
-[node name="TextureRect" type="TextureRect" parent="MainCamera/PostProcessing"]
-material = SubResource("ShaderMaterial_fd41o")
-texture = SubResource("ViewportTexture_0a8k7")
-expand_mode = 2
-stretch_mode = 4
+[node name="PostProcessingCamera" type="Camera3D" parent="MainCamera/PostProcessing"]
+cull_mask = 32
+
+[node name="PostProcessingMesh" type="MeshInstance3D" parent="MainCamera/PostProcessing/PostProcessingCamera"]
+layers = 32
+material_override = SubResource("ShaderMaterial_o60ek")
+extra_cull_margin = 16384.0
+mesh = SubResource("QuadMesh_4ehcw")
+skeleton = NodePath("../..")
 
 [node name="HorizontalBlur" type="SubViewport" parent="MainCamera"]
 transparent_bg = true
@@ -281,8 +228,3 @@ metadata/_edit_use_anchors_ = true
 
 [node name="Ground" type="MeshInstance3D" parent="."]
 mesh = SubResource("PlaneMesh_31lt2")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 361.626, 118.024, 774.088)
-material_override = SubResource("StandardMaterial3D_7k8hm")
-mesh = SubResource("BoxMesh_31lt2")

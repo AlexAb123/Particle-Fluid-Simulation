@@ -77,3 +77,4 @@ d={
 3d_render/layer_3="Normal"
 3d_render/layer_4="Thickness"
 3d_render/layer_5="Light"
+3d_render/layer_6="PostProcessing"
