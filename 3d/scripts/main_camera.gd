@@ -31,6 +31,7 @@ func _ready():
 	var post_processing_material = post_processing_mesh.material_override as ShaderMaterial
 	post_processing_material.set_shader_parameter("camera_near", near)
 	post_processing_material.set_shader_parameter("camera_far", far)
+	post_processing_material.set_shader_parameter("sun_world_pos", $"../Sun".global_position)
 	
 func _update_viewports() -> void:
 	for viewport: SubViewport in viewports:
@@ -38,7 +39,6 @@ func _update_viewports() -> void:
 	output_texture_rect.size = parent_viewport.size
 	texture_rect1.size = parent_viewport.size
 	texture_rect2.size = parent_viewport.size
-	$ThicknessViewport.size = parent_viewport.size / 2.0
 	
 func _input(event):
 	

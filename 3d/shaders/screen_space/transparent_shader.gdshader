@@ -40,7 +40,7 @@ void fragment() {
 	
 	if (CAMERA_VISIBLE_LAYERS == 8u){ // Thickness layer
 	    ALBEDO = vec3(1);
-	    ALPHA = 0.15 * (0.25 - squared_center_offset); // Values closer to center have more contribution to thickness
+	    ALPHA = 0.05 * (0.25 - squared_center_offset); // Values closer to center have more contribution to thickness
 	}
 }
 

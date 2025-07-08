@@ -33,5 +33,4 @@ void fragment() {
 	vec3 view_normal = normalize(cross(ddy, ddx));
 	vec3 world_normal = (INV_VIEW_MATRIX  * vec4(view_normal, 0.0)).xyz  * 0.5 + 0.5;
 	ALBEDO = world_normal;
-	NORMAL = world_normal;
 }
