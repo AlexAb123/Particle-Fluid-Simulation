@@ -1,6 +1,6 @@
 shader_type canvas_item;
 
-render_mode unshaded, blend_add;
+render_mode blend_add;
 
 uniform sampler2D depth_texture;
 uniform sampler2D normal_texture;
@@ -12,7 +12,7 @@ void vertex() {
 
 void fragment() {
 	if (COLOR.a == 0.0) discard;
-	COLOR.a = max(0.55, COLOR.a);
+	
 }
 
 //void light() {

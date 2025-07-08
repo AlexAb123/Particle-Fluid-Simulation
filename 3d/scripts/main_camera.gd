@@ -8,9 +8,9 @@ class_name MainCamera
 @onready var cameras: Array[Node] = find_children("*", "Camera3D")
 @onready var parent_viewport: Viewport = get_viewport()
 @onready var output_texture_rect: TextureRect = $OutputTextureRect
-@onready var texture_rect1: TextureRect = $PostProcessing1/TextureRect
-@onready var texture_rect2: TextureRect = $PostProcessing2/TextureRect
-@onready var texture_rect3: TextureRect = $PostProcessing3/TextureRect
+@onready var texture_rect1: TextureRect = $PostProcessing/TextureRect
+@onready var texture_rect2: TextureRect = $HorizontalBlur/TextureRect
+@onready var texture_rect3: TextureRect = $VerticalBlur/TextureRect
 @onready var normal_mesh: MeshInstance3D = $NormalViewport/NormalCamera/NormalMesh
 
 func _ready():

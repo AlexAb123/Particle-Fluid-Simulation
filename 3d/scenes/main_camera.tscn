@@ -84,7 +84,7 @@ shader_parameter/thickness_texture = SubResource("ViewportTexture_2bgf7")
 viewport_path = NodePath("PostProcessing2")
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_8opor"]
-viewport_path = NodePath("PostProcessing3")
+viewport_path = NodePath("LightViewport")
 
 [node name="MainCamera" type="Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 0, 0)
@@ -134,14 +134,14 @@ camera = NodePath("../ThicknessCamera")
 transform = Transform3D(1, 0, 0, 0, 0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0, 0)
 cull_mask = 8
 
-[node name="ColorViewport" type="SubViewport" parent="." node_paths=PackedStringArray("camera")]
+[node name="LightViewport" type="SubViewport" parent="." node_paths=PackedStringArray("camera")]
 transparent_bg = true
 use_hdr_2d = true
 canvas_item_default_texture_filter = 0
 script = ExtResource("2_nxp87")
-camera = NodePath("../ColorCamera")
+camera = NodePath("../LightCamera")
 
-[node name="ColorCamera" type="Camera3D" parent="."]
+[node name="LightCamera" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0, 0)
 cull_mask = 16
 

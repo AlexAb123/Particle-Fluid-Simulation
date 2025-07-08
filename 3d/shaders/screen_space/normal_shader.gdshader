@@ -31,11 +31,26 @@ void fragment() {
 	vec3 ddy = get_view_pos(SCREEN_UV + vec2(0.0, step_size.y), INV_PROJECTION_MATRIX) - center_pos;
 	
 	vec3 view_normal = normalize(cross(ddy, ddx));
-	vec3 world_normal = (INV_VIEW_MATRIX  * vec4(view_normal, 0.0)).xyz;
-	ALBEDO = world_normal * 0.5 + 0.5;
+	vec3 world_normal = (INV_VIEW_MATRIX  * vec4(view_normal, 0.0)).xyz  * 0.5 + 0.5;
+	ALBEDO = world_normal;
+	NORMAL = world_normal;
 }
 
-//void light() {
-//	// Called for every pixel for every light affecting the material.
-//	// Uncomment to replace the default light processing function with this one.
-//}
+void light() {
+	  // This gets called for each light in your scene
+    // NORMAL is already set from fragment(), so lighting "just works"
+    
+    // Basic diffuse lighting
+    float NdotL = max(dot(NORMAL, LIGHT), 0.0);
+    
+    // Calculate fresnel for more realistic water
+    float fresnel = pow(1.0 - max(dot(NORMAL, VIEW), 0.0), 2.0);
+    
+    // Diffuse component (reduced by fresnel)
+    DIFFUSE_LIGHT = LIGHT_COLOR * ATTENUATION * NdotL * (1.0 - fresnel * 0.7);
+    
+    // Strong specular for water surface
+    vec3 reflection = reflect(-LIGHT, NORMAL);
+    float spec = pow(max(dot(reflection, VIEW), 0.0), 128.0);
+    SPECULAR_LIGHT = LIGHT_COLOR * ATTENUATION * spec * (0.5 + fresnel * 0.5);
+}

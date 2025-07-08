@@ -13,7 +13,7 @@ config_version=5
 config/name="Particle Fluid Simulation"
 run/main_scene="uid://mri7qt1dachx"
 config/features=PackedStringArray("4.4", "Forward Plus")
-run/max_fps=120
+run/max_fps=60
 boot_splash/show_image=false
 
 [debug]
@@ -76,4 +76,4 @@ d={
 3d_render/layer_2="Depth"
 3d_render/layer_3="Normal"
 3d_render/layer_4="Thickness"
-3d_render/layer_5="Color"
+3d_render/layer_5="Light"

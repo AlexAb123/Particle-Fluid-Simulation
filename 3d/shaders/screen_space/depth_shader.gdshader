@@ -57,7 +57,7 @@ void fragment() {
 		discard;
 	}
 
-	if (CAMERA_VISIBLE_LAYERS == 16u){ // Color layer
-		ALBEDO = texture(gradient_texture, vec2(particle_data_point.w/450.0, 0.5)).rgb;
+	if (CAMERA_VISIBLE_LAYERS == 16u){ // Light layer
+		discard;
 	}
 }
