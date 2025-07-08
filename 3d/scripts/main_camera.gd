@@ -35,7 +35,8 @@ func _update_viewports() -> void:
 	texture_rect1.size = parent_viewport.size
 	texture_rect2.size = parent_viewport.size
 	texture_rect3.size = parent_viewport.size
-
+	$ThicknessViewport.size = parent_viewport.size / 2.0
+	
 func _input(event):
 	
 	if event is InputEventMouseMotion:

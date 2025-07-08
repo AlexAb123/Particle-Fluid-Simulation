@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode unshaded, depth_draw_always;
+render_mode unshaded, depth_draw_never, blend_add;
 
 uniform sampler2D particle_data;
 uniform int particle_count;
@@ -14,7 +14,6 @@ varying vec3 world_pos; // Position of center of sphere in world coordinates
 varying vec3 view_pos; // Position of center of sphere in camera coordinates
 varying float camera_distance; // Distance from center of sphere to camera
 varying vec4 particle_data_point;
-
 
 void vertex() {
 	int index = int(VERTEX.x);
@@ -39,28 +38,9 @@ void fragment() {
 	float squared_center_offset = dot(center_offset, center_offset);
 	if (squared_center_offset > 0.25) discard;
 	
-	float linear_depth = distance(CAMERA_POSITION_WORLD, world_pos);
-	float z_offset = sqrt(0.25 - squared_center_offset); // Solve for z: x^2 + y^2 + z^2 = R^2
-	float z_offset_world = z_offset * particle_size / max(0.01, linear_depth); // Transform z_offset into world coordinates
-	float sphere_linear_depth = linear_depth - z_offset_world; // Adjust linear depth for rounded surface of the sphere
-	float depth = 1.0 - ((sphere_linear_depth - camera_near) / (camera_far - camera_near)); // Convert to depth buffer value
-	DEPTH = clamp(depth, 0.0, 1.0);
-	
-	if (CAMERA_VISIBLE_LAYERS == 2u) { // Depth layer
-		discard;
-	}
-	
-	if (CAMERA_VISIBLE_LAYERS == 4u) { // Normal layer
-		discard;
-	}
-	
 	if (CAMERA_VISIBLE_LAYERS == 8u){ // Thickness layer
-		ALBEDO = vec3(1);
-		ALPHA = 0.05;
-	}
-	
-	if (CAMERA_VISIBLE_LAYERS == 16u){ // Color layer
-		discard;
+	    ALBEDO = vec3(1,0,0);
+	    ALPHA = 0.1 * (0.25 - squared_center_offset); // Values closer to center have more contribution to thickness
 	}
 }
 

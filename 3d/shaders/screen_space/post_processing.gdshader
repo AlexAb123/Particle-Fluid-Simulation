@@ -1,12 +1,17 @@
 shader_type canvas_item;
 
-render_mode unshaded;
+render_mode unshaded, blend_add;
+
+uniform sampler2D depth_texture;
+uniform sampler2D normal_texture;
+uniform sampler2D thickness_texture;
 
 void vertex() {
+	
 }
 
 void fragment() {
-
+	COLOR.a *= 3.0;
 }
 
 //void light() {
