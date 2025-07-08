@@ -24,7 +24,13 @@ void vertex() {
 	view_pos = (VIEW_MATRIX * vec4(world_pos, 1.0)).xyz;
 	VERTEX.xyz = world_pos;
 	camera_distance = distance(CAMERA_POSITION_WORLD, world_pos);
-    POINT_SIZE = particle_size / camera_distance;
+	
+	vec4 clip_pos = PROJECTION_MATRIX * vec4(view_pos, 1.0);
+	vec2 ndc_pos = clip_pos.xy / clip_pos.w;
+	float edge_distance = length(ndc_pos);
+	
+	float edge_compensation = 1.0 + edge_distance * 0.3; // Particles closer to the edge have a larger point size
+	POINT_SIZE = (particle_size / camera_distance) * edge_compensation;
 }
 
 void fragment() {

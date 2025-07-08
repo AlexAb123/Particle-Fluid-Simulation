@@ -20,6 +20,7 @@ func _ready():
 	_update_viewports()
 	
 	for camera: Camera3D in cameras:
+		camera.fov = fov
 		camera.near = near
 		camera.far = far
 		
