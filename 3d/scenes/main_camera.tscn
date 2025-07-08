@@ -44,7 +44,7 @@ shader_parameter/PROJECTION_MATRIX = Projection(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
 shader_parameter/max_blur_size_pixels = 0
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_8nd1s"]
-viewport_path = NodePath("ThicknessViewport")
+viewport_path = NodePath("NormalViewport")
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_48j13"]
 viewport_path = NodePath("DepthViewport")

@@ -11,7 +11,8 @@ void vertex() {
 }
 
 void fragment() {
-	COLOR.a *= 3.0;
+	if (COLOR.a == 0.0) discard;
+	COLOR.a = max(0.55, COLOR.a);
 }
 
 //void light() {
