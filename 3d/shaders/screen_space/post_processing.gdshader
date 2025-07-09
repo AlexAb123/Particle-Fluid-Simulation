@@ -11,9 +11,12 @@ uniform float camera_far;
 
 uniform vec3 sun_world_pos;
 uniform vec3 sun_color: source_color = vec3(1.0, 0.9, 0.7);
-uniform vec3 reflect_color: source_color = vec3(1.0, 0.9, 0.7);
 uniform float sun_sharpness: hint_range(0.0, 1000.0) = 500.0;
 uniform float sun_intensity: hint_range(0.0, 500.0) = 5.0;
+uniform float refraction_strength: hint_range(0.0, 500.0) = 5.0;
+uniform vec3 extinction_coefficients = vec3(0.45, 0.01, 0.005);
+uniform float transparency: hint_range(0.0, 1.0) = 0.3;
+
 
 uniform vec3 water_color: source_color = vec3(0, 0, 1);
 
@@ -42,11 +45,16 @@ void fragment() {
     float alignment = max(dot(reflect_dir, sun_dir), 0.0); // How similar is the reflection vector and vector to sun
 	float sun_brightness = pow(alignment, sun_sharpness);
 	
-	float brightness = dot(surface_normal, light_dir) * 0.5 + 0.5;
+	vec3 reflect_color = sun_color * sun_brightness * sun_intensity;
+	
+	float brightness = max(dot(surface_normal, light_dir) * 0.5 + 0.5, 0.20);
 	vec3 light_color = water_color * brightness;
 
-    ALBEDO = background * 0.5 + (sun_color * sun_brightness * sun_intensity) + light_color;
-    ALPHA = 1.0;
+    // Beer-Lambert law. Light gets absorbed as it travels through water
+    vec3 transmission = exp(-thickness * extinction_coefficients);
+    vec3 refract_color = light_color * transmission;
+	
+    ALBEDO = background * transparency + refract_color + reflect_color;
 }
 
 void vertex() {
