@@ -21,15 +21,15 @@ void vertex() {
 
 void fragment() {
 	vec4 depth = texture(depth_texture, SCREEN_UV);
-	
+
 	if (depth.a == 0.0) discard;
-		
+
 	vec3 center_pos = get_view_pos(SCREEN_UV, INV_PROJECTION_MATRIX);
-	
+
 	vec2 step_size = 1.0 / vec2(textureSize(depth_texture, 0));
 	vec3 ddx = get_view_pos(SCREEN_UV + vec2(step_size.x, 0.0), INV_PROJECTION_MATRIX) - center_pos;
 	vec3 ddy = get_view_pos(SCREEN_UV + vec2(0.0, step_size.y), INV_PROJECTION_MATRIX) - center_pos;
-	
+
 	vec3 view_normal = normalize(cross(ddy, ddx));
 	vec3 world_normal = (INV_VIEW_MATRIX  * vec4(view_normal, 0.0)).xyz  * 0.5 + 0.5;
 	ALBEDO = world_normal;

@@ -11,8 +11,8 @@ uniform float camera_far;
 
 uniform vec3 sun_world_pos;
 uniform vec3 sun_color: source_color = vec3(1.0, 0.9, 0.7);
-uniform float sun_intensity: hint_range(0.0, 5.0) = 1.0;
-uniform float specular_power: hint_range(1.0, 128.0) = 0.01;
+uniform float sun_intensity: hint_range(0.0, 500.0) = 1.0;
+uniform float specular_power: hint_range(1.0, 1280.0) = 0.01;
 
 uniform vec3 water_color: source_color = vec3(0, 0, 1);
 
@@ -30,33 +30,26 @@ void fragment() {
 	if (depth == 0.0) discard;
 	vec3 world_normal = normalize(texture(normal_texture, SCREEN_UV).rgb * 2.0 - 1.0);
 	vec3 background = texture(background_texture, SCREEN_UV).rgb;
-	
-    
+
+
     // Get positions in world space
     vec3 view_pos = get_view_pos(SCREEN_UV, INV_PROJECTION_MATRIX);
     vec3 world_pos = (INV_VIEW_MATRIX * vec4(view_pos, 1.0)).xyz;
-    
-    // === BLINN-PHONG IN WORLD SPACE ===
-    
-    // Step 1: World view direction (surface to camera)
+
+
     vec3 world_view_dir = normalize(CAMERA_POSITION_WORLD - world_pos);
-    
-    // Step 2: World light direction (surface to sun)
+
     vec3 world_light_dir = normalize(sun_world_pos - world_pos);
-    
-    // Step 3: Half-vector in world space
+
     vec3 world_half_vector = normalize(world_view_dir + world_light_dir);
-    
-    // Step 4: Calculate specular with world space normal
-    float ndoth = max(dot(world_normal, world_half_vector), 0.0);
-    float specular_factor = pow(ndoth, specular_power);
-    
-    // Step 5: Calculate sun reflection
+
+    float alignment = max(dot(world_normal, world_half_vector), 0.0);
+    float specular_factor = pow(alignment, specular_power);
+
     vec3 sun_reflection = sun_color * specular_factor * sun_intensity;
-    
-    // === OUTPUT ===
+
     vec3 final_color = background + sun_reflection;
-    
+
     ALBEDO = final_color;
     ALPHA = 0.8;
 }

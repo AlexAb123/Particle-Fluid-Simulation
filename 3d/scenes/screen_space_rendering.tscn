@@ -61,7 +61,7 @@ viewport_path = NodePath("MainCamera/BackgroundViewport")
 viewport_path = NodePath("MainCamera/DepthViewport")
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_c2ugv"]
-viewport_path = NodePath("MainCamera/VerticalBlur")
+viewport_path = NodePath("MainCamera/NormalViewport")
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_lhr72"]
 viewport_path = NodePath("MainCamera/ThicknessViewport")
@@ -78,8 +78,8 @@ shader_parameter/camera_near = 0.0
 shader_parameter/camera_far = 0.0
 shader_parameter/sun_world_pos = Vector3(0, 0, 0)
 shader_parameter/sun_color = Color(1, 0.9, 0.7, 1)
-shader_parameter/sun_intensity = 2.0
-shader_parameter/specular_power = 64.0
+shader_parameter/sun_intensity = 3.0
+shader_parameter/specular_power = 256.0
 shader_parameter/water_color = Color(0, 0.95, 1, 1)
 
 [sub_resource type="QuadMesh" id="QuadMesh_4ehcw"]
@@ -102,7 +102,7 @@ shader_parameter/PROJECTION_MATRIX = Projection(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
 shader_parameter/max_blur_size_pixels = 0
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_3tqik"]
-viewport_path = NodePath("MainCamera/NormalViewport")
+viewport_path = NodePath("MainCamera/PostProcessing")
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_ygy7n"]
 viewport_path = NodePath("MainCamera/DepthViewport")
@@ -123,7 +123,7 @@ shader_parameter/max_blur_size_pixels = 0
 viewport_path = NodePath("MainCamera/HorizontalBlur")
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_diene"]
-viewport_path = NodePath("MainCamera/PostProcessing")
+viewport_path = NodePath("MainCamera/VerticalBlur")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1s01v"]
 render_priority = 0
@@ -258,6 +258,6 @@ layers = 65
 mesh = SubResource("PlaneMesh_31lt2")
 
 [node name="Sun" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1500, 1000, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1500, 750, 0)
 layers = 65
 mesh = SubResource("SphereMesh_4ehcw")
