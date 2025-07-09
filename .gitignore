@@ -1,2 +1,4 @@
 .godot/
 *.bin
+.import/
+export.cfg
