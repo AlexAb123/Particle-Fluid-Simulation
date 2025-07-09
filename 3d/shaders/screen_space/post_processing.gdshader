@@ -44,16 +44,16 @@ void fragment() {
 
     float alignment = max(dot(reflect_dir, sun_dir), 0.0); // How similar is the reflection vector to the vector to sun
 	float sun_brightness = pow(alignment, sun_sharpness);
-	
+
 	vec3 reflect_color = sun_color * sun_brightness * sun_intensity;
-	
+
 	float brightness = max(dot(surface_normal, light_dir) * 0.5 + 0.5, 0.20);
 	vec3 light_color = water_color * brightness;
 
     // Beer-Lambert law. Light gets absorbed as it travels through water
     vec3 transmission = exp(-thickness * extinction_coefficients);
     vec3 refract_color = light_color * transmission;
-	
+
     ALBEDO = background * transparency + refract_color + reflect_color;
 }
 

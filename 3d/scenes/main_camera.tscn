@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://66tdse57wb7m"]
+[gd_scene load_steps=24 format=3 uid="uid://dagi61rw07ny1"]
 
 [ext_resource type="Script" uid="uid://da51r6nsfo2wd" path="res://3d/scripts/main_camera.gd" id="1_vbit3"]
 [ext_resource type="Script" uid="uid://5wpp7ie0q33u" path="res://3d/scripts/attachable_sub_viewport.gd" id="2_nxp87"]
@@ -75,10 +75,21 @@ viewport_path = NodePath("ThicknessViewport")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_8nd1s"]
 resource_local_to_scene = true
+render_priority = 0
 shader = ExtResource("6_iq1th")
 shader_parameter/depth_texture = SubResource("ViewportTexture_22jx6")
 shader_parameter/normal_texture = SubResource("ViewportTexture_m2vl0")
 shader_parameter/thickness_texture = SubResource("ViewportTexture_2bgf7")
+shader_parameter/camera_near = 0.0
+shader_parameter/camera_far = 0.0
+shader_parameter/sun_world_pos = Vector3(0, 0, 0)
+shader_parameter/sun_color = Color(1, 0.9, 0.7, 1)
+shader_parameter/sun_sharpness = 500.0
+shader_parameter/sun_intensity = 5.0
+shader_parameter/refraction_strength = 5.0
+shader_parameter/extinction_coefficients = Vector3(0.45, 0.01, 0.005)
+shader_parameter/transparency = 0.3
+shader_parameter/water_color = Color(0, 0, 1, 1)
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_ffdne"]
 viewport_path = NodePath("PostProcessing2")
