@@ -1,6 +1,6 @@
 ### Particle Fluid Simulation using Smoothed Particle Hydrodynamics
 
-This simulation is built in **Godot 4.4**, utilizing a custom implementation of **Smoothed Particle Hydrodynamics** as well as **compute shaders** to model fluid behavior with high performance.
+This real-time interactable simulation is built in **Godot 4.4**, utilizing a custom implementation of **Smoothed Particle Hydrodynamics** as well as **compute shaders** to model fluid behavior with high performance.
 
 ---
 
