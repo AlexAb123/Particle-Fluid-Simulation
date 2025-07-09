@@ -42,7 +42,7 @@ void fragment() {
     vec3 sun_dir = -light_dir; // Particle to sun vector
 	vec3 reflect_dir = reflect(view_dir, surface_normal); // Reflected direction (as if the water was a mirror)
 
-    float alignment = max(dot(reflect_dir, sun_dir), 0.0); // How similar is the reflection vector and vector to sun
+    float alignment = max(dot(reflect_dir, sun_dir), 0.0); // How similar is the reflection vector to the vector to sun
 	float sun_brightness = pow(alignment, sun_sharpness);
 	
 	vec3 reflect_color = sun_color * sun_brightness * sun_intensity;

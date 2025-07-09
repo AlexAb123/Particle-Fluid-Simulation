@@ -147,6 +147,10 @@ height = 400.0
 
 [node name="ScreenSpaceRendering" type="Node3D"]
 script = ExtResource("1_edfdb")
+particle_size = 15000.0
+target_density = 0.5
+viscosity = 350.0
+bounds = Vector3(500, 250, 250)
 
 [node name="ParticlesMeshInstance" type="MeshInstance3D" parent="."]
 layers = 30
@@ -157,6 +161,7 @@ mesh = SubResource("ArrayMesh_402sr")
 [node name="MainCamera" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 0, 0)
 cull_mask = 1
+far = 3000.0
 script = ExtResource("6_4ehcw")
 
 [node name="DepthViewport" type="SubViewport" parent="MainCamera" node_paths=PackedStringArray("camera")]
