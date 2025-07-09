@@ -45,6 +45,7 @@ process_material = SubResource("ShaderMaterial_7gpfj")
 draw_pass_1 = SubResource("SphereMesh_fkybn")
 
 [node name="FPSCounter" type="Label" parent="."]
+visible = false
 offset_right = 40.0
 offset_bottom = 23.0
 

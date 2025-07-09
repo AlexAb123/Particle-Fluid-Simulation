@@ -257,6 +257,7 @@ stretch_mode = 4
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="FPSCounter" type="Label" parent="CanvasLayer"]
+visible = false
 offset_right = 40.0
 offset_bottom = 23.0
 metadata/_edit_use_anchors_ = true

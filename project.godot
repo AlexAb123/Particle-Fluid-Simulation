@@ -27,6 +27,10 @@ window/size/viewport_width=1800
 window/size/viewport_height=900
 window/vsync/vsync_mode=0
 
+[editor]
+
+movie_writer/movie_file="C:/Users/alexa/Desktop/Godot Projects/Particle Fluid Simulation/3d_movie#33.avi"
+
 [input]
 
 left_click={

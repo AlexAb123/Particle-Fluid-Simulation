@@ -13,8 +13,8 @@ shader_parameter/image_size = 0
 
 [node name="ParticleFluidSimulation2D" type="Node2D"]
 script = ExtResource("1_gwx1i")
-particle_count = 32768
-target_density = 2.0
+particle_count = 16384
+target_density = 1.5
 viscosity = 500.0
 mouse_force_multiplier = 2500.0
 gradient = ExtResource("2_54p2y")
@@ -25,5 +25,6 @@ fixed_fps = 120
 process_material = SubResource("ShaderMaterial_wti10")
 
 [node name="FPSCounter" type="Label" parent="."]
+visible = false
 offset_right = 40.0
 offset_bottom = 23.0
