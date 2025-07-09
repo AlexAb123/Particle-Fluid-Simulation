@@ -15,7 +15,7 @@ shader_parameter/image_size = 0
 script = ExtResource("1_gwx1i")
 particle_count = 32768
 target_density = 2.0
-viscosity = 250.0
+viscosity = 500.0
 mouse_force_multiplier = 2500.0
 gradient = ExtResource("2_54p2y")
 
