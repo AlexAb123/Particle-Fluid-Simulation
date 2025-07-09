@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://da2v0fjodrm0s"
+path="res://.godot/imported/reorder_copy_back_3d.glsl-36e7876365a0a9103370d521bac29550.res"
+
+[deps]
+
+source_file="res://3d/shaders/compute/reorder_copy_back_3d.glsl"
+dest_files=["res://.godot/imported/reorder_copy_back_3d.glsl-36e7876365a0a9103370d521bac29550.res"]
+
+[params]
+

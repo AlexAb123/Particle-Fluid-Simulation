@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://b6egu5bqxnh5i"
+path="res://.godot/imported/clear_bucket_counts_3d.glsl-3ae4b56704e27308ac1c2cf45e38302c.res"
+
+[deps]
+
+source_file="res://3d/shaders/compute/clear_bucket_counts_3d.glsl"
+dest_files=["res://.godot/imported/clear_bucket_counts_3d.glsl-3ae4b56704e27308ac1c2cf45e38302c.res"]
+
+[params]
+
