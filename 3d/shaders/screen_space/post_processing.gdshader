@@ -11,8 +11,9 @@ uniform float camera_far;
 
 uniform vec3 sun_world_pos;
 uniform vec3 sun_color: source_color = vec3(1.0, 0.9, 0.7);
-uniform float sun_intensity: hint_range(0.0, 500.0) = 1.0;
-uniform float specular_power: hint_range(1.0, 1280.0) = 0.01;
+uniform vec3 reflect_color: source_color = vec3(1.0, 0.9, 0.7);
+uniform float sun_sharpness: hint_range(0.0, 1000.0) = 500.0;
+uniform float sun_intensity: hint_range(0.0, 500.0) = 5.0;
 
 uniform vec3 water_color: source_color = vec3(0, 0, 1);
 
@@ -28,30 +29,24 @@ void fragment() {
 	float thickness = texture(thickness_texture, SCREEN_UV).a;
 	float depth = texture(depth_texture, SCREEN_UV).r;
 	if (depth == 0.0) discard;
-	vec3 world_normal = normalize(texture(normal_texture, SCREEN_UV).rgb * 2.0 - 1.0);
+	vec3 surface_normal = normalize(texture(normal_texture, SCREEN_UV).rgb * 2.0 - 1.0);
 	vec3 background = texture(background_texture, SCREEN_UV).rgb;
 
-
-    // Get positions in world space
     vec3 view_pos = get_view_pos(SCREEN_UV, INV_PROJECTION_MATRIX);
     vec3 world_pos = (INV_VIEW_MATRIX * vec4(view_pos, 1.0)).xyz;
+    vec3 view_dir = normalize(CAMERA_POSITION_WORLD - world_pos); // Camera to particle vector
+    vec3 light_dir = normalize(sun_world_pos - world_pos); // Sun to particle vector
+    vec3 sun_dir = -light_dir; // Particle to sun vector
+	vec3 reflect_dir = reflect(view_dir, surface_normal); // Reflected direction (as if the water was a mirror)
 
+    float alignment = max(dot(reflect_dir, sun_dir), 0.0); // How similar is the reflection vector and vector to sun
+	float sun_brightness = pow(alignment, sun_sharpness);
+	
+	float brightness = dot(surface_normal, light_dir) * 0.5 + 0.5;
+	vec3 light_color = water_color * brightness;
 
-    vec3 world_view_dir = normalize(CAMERA_POSITION_WORLD - world_pos);
-
-    vec3 world_light_dir = normalize(sun_world_pos - world_pos);
-
-    vec3 world_half_vector = normalize(world_view_dir + world_light_dir);
-
-    float alignment = max(dot(world_normal, world_half_vector), 0.0);
-    float specular_factor = pow(alignment, specular_power);
-
-    vec3 sun_reflection = sun_color * specular_factor * sun_intensity;
-
-    vec3 final_color = background + sun_reflection;
-
-    ALBEDO = final_color;
-    ALPHA = 0.8;
+    ALBEDO = background * 0.5 + (sun_color * sun_brightness * sun_intensity) + light_color;
+    ALPHA = 1.0;
 }
 
 void vertex() {
