@@ -17,5 +17,6 @@ Particles respond to simulated sunlight, creating depth and a more realistic loo
 ![3D Demo](demos/3D_demo.gif)
 
 ---
+
 #### References:
 - https://github.com/SebLague/Fluid-Sim
