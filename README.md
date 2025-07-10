@@ -7,14 +7,14 @@ This real-time interactive simulation developed in **Godot 4.4** utilizes a cust
 ### 2D Demo: Speed-Based Coloring  
 Particles are color-coded based on their speed.
 
-![2D Demo](media/2D_demo.gif)
+![2D Demo](demos/2D_demo.gif)
 
 ---
 
 ### 3D Demo: Light Interaction
 Particles respond to simulated sunlight, creating depth and a more realistic look.
 
-![3D Demo](media/3D_demo.gif)
+![3D Demo](demos/3D_demo.gif)
 
 ---
 #### References:
